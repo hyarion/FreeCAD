@@ -72,8 +72,9 @@ class CommandAddonManager:
     def Activated(self):
 
         # display first use dialog if needed
-        readWarning = FreeCAD.ParamGet("User parameter:Plugins/addonsRepository").GetBool("readWarning",
-                                                                                          False)
+        readWarningParameter = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Addons")
+        readWarning = readWarningParameter.GetBool("readWarning", False)
+        readWarning |= FreeCAD.ParamGet('User parameter:Plugins/addonsRepository', False)
         if not readWarning:
             if (QtGui.QMessageBox.warning(None,
                                           "FreeCAD",
@@ -85,8 +86,7 @@ class CommandAddonManager:
                                           QtGui.QMessageBox.Cancel |
                                           QtGui.QMessageBox.Ok) !=
                     QtGui.QMessageBox.StandardButton.Cancel):
-                FreeCAD.ParamGet("User parameter:Plugins/addonsRepository").SetBool("readWarning",
-                                                                                    True)
+                readWarningParameter.SetBool("readWarning", True)
                 readWarning = True
 
         if readWarning:

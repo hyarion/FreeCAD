@@ -194,6 +194,7 @@ public:
     QPixmap workbenchIcon(const QString&) const;
     QString workbenchToolTip(const QString&) const;
     QString workbenchMenuText(const QString&) const;
+    QString workbenchAttribute(const QString&, const QString&) const;
     QStringList workbenches(void) const;
     void setupContextMenu(const char* recipient, MenuItem*) const;
     //@}

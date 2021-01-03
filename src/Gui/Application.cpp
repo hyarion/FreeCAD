@@ -1502,20 +1502,23 @@ QPixmap Application::workbenchIcon(const QString& wb) const
     return QPixmap();
 }
 
-QString Application::workbenchToolTip(const QString& wb) const
+QString Application::workbenchAttribute(const QString& wb, const QString& attr) const
 {
     // get the python workbench object from the dictionary
     Base::PyGILStateLocker lock;
     PyObject* pcWorkbench = PyDict_GetItemString(_pcWorkbenchDictionary, wb.toLatin1());
     // test if the workbench exists
     if (pcWorkbench) {
-        // get its ToolTip member if possible
+        // get its attribute member if possible
         try {
             Py::Object handler(pcWorkbench);
-            Py::Object member = handler.getAttr(std::string("ToolTip"));
-            if (member.isString()) {
-                Py::String tip(member);
-                return QString::fromUtf8(tip.as_std_string("utf-8").c_str());
+            auto attrStr = std::string(attr.toLatin1());
+            if (handler.hasAttr(attrStr)) {
+                Py::Object member = handler.getAttr(attrStr);
+                if (member.isString()) {
+                    Py::String val(member);
+                    return QString::fromUtf8(val.as_std_string("utf-8").c_str());
+                }
             }
         }
         catch (Py::Exception& e) {
@@ -1526,29 +1529,14 @@ QString Application::workbenchToolTip(const QString& wb) const
     return QString();
 }
 
+QString Application::workbenchToolTip(const QString& wb) const
+{
+    return workbenchAttribute(wb, QString::fromLatin1("ToolTip"));
+}
+
 QString Application::workbenchMenuText(const QString& wb) const
 {
-    // get the python workbench object from the dictionary
-    Base::PyGILStateLocker lock;
-    PyObject* pcWorkbench = PyDict_GetItemString(_pcWorkbenchDictionary, wb.toLatin1());
-    // test if the workbench exists
-    if (pcWorkbench) {
-        // get its ToolTip member if possible
-        Base::PyGILStateLocker locker;
-        try {
-            Py::Object handler(pcWorkbench);
-            Py::Object member = handler.getAttr(std::string("MenuText"));
-            if (member.isString()) {
-                Py::String tip(member);
-                return QString::fromUtf8(tip.as_std_string("utf-8").c_str());
-            }
-        }
-        catch (Py::Exception& e) {
-            e.clear();
-        }
-    }
-
-    return QString();
+    return workbenchAttribute(wb, QString::fromLatin1("MenuText"));
 }
 
 QStringList Application::workbenches(void) const

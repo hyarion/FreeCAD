@@ -103,6 +103,7 @@ protected:
     void setupLabels();
     void showLicenseInformation();
     void showCollectionInformation();
+    QStringList getWorkbenchInformation();
 
 protected Q_SLOTS:
     virtual void on_copyButton_clicked();

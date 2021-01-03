@@ -58,6 +58,7 @@
 #include <CXX/WrapPython.h>
 #include <App/Application.h>
 #include <Gui/MainWindow.h>
+#include <Gui/Application.h>
 
 
 using namespace Gui;
@@ -707,6 +708,21 @@ void AboutDialog::showLicenseInformation()
     connect(textField, SIGNAL(anchorClicked(QUrl)), this, SLOT(linkActivated(QUrl)));
 }
 
+QStringList AboutDialog::getWorkbenchInformation()
+{
+    const auto app = Application::Instance;
+
+    QStringList wbInfo;
+    for (const auto wbName : app->workbenches()) {
+        auto version = app->workbenchAttribute(wbName, QString::fromLatin1("Version"));
+        if (!version.isEmpty()) {
+            auto name = app->workbenchAttribute(wbName, QString::fromLatin1("MenuText"));
+            wbInfo << QLatin1String("%1 %2").arg(name, version);
+        }
+    }
+    return wbInfo;
+}
+
 void AboutDialog::showCollectionInformation()
 {
     QString doc = QString::fromUtf8(App::Application::getHelpDir().c_str());
@@ -819,6 +835,13 @@ void AboutDialog::on_copyButton_clicked()
     str << "Locale: " << loc.languageToString(loc.language()) << "/"
         << loc.countryToString(loc.country())
         << " (" << loc.name() << ")\n";
+
+    const auto & wbInfo = getWorkbenchInformation();
+    if (wbInfo.size()) {
+        str << "External Workbenches:\n";
+        for (const auto s : wbInfo)
+            str << s << "\n";
+    }
 
     QClipboard* cb = QApplication::clipboard();
     cb->setText(data);

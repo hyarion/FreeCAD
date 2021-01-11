@@ -354,7 +354,7 @@ void Cell::setContent(const char * value)
                     }
                     // this should never be reached since numberExpressions should already have been caught with strtod
                     else if (const auto number = freecad_dynamic_cast<NumberExpression>(parsedExpr)) {
-                        Console().Error("This should never reach this point\n");
+                        Console().Error("Spreadsheet should already have parsed this as a number and didn't.\n");
                         expr = parsedExpr;
                     }
 
@@ -1060,5 +1060,4 @@ std::string Cell::getFormattedQuantity(void)
     result = Base::Tools::toStdString(qFormatted);
     return result;
 }
-
 

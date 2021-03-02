@@ -56,6 +56,7 @@ Setting the project name adhoc:
 import concurrent.futures
 import glob
 import json
+import io
 import os
 import sys
 from collections import namedtuple
@@ -65,6 +66,8 @@ from urllib.parse import quote_plus
 from urllib.request import Request
 from urllib.request import urlopen
 from urllib.request import urlretrieve
+
+from addlocationcomment import add_github_links
 
 TsFile = namedtuple('TsFile', ['filename', 'src_path'])
 
@@ -116,11 +119,16 @@ class CrowdinUpdater:
         })
         return response['id']
 
-    def _update_file(self, project_id, ts_file, files_info):
+    def _update_file(self, project_id, ts_file, files_info, ts_patcher=None):
         filename = quote_plus(ts_file.filename)
 
-        with open(ts_file.src_path, 'rb') as fp:
-            storage_id = self._add_storage(filename, fp)
+        if ts_patcher:
+            with io.BytesIO() as fp:
+                ts_patcher(ts_file.src_path, fp)
+                storage_id = self._add_storage(filename, fp)
+        else:
+            with open(ts_file.src_path, 'rb') as fp:
+                storage_id = self._add_storage(filename, fp)
 
         if filename in files_info:
             file_id = files_info[filename]
@@ -153,14 +161,14 @@ class CrowdinUpdater:
         response = self._make_project_api_req('/translations/builds')
         return [item['data'] for item in response]
 
-    def update(self, ts_files):
+    def update(self, ts_files, ts_patcher=None):
         files_info = self._get_files_info()
         futures = []
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             for ts_file in ts_files:
                 if self.multithread:
-                    future = executor.submit(self._update_file, self.project_identifier, ts_file, files_info)
+                    future = executor.submit(self._update_file, self.project_identifier, ts_file, files_info, ts_patcher)
                     futures.append(future)
                 else:
                     self._update_file(self.project_identifier, ts_file, files_info)
@@ -239,6 +247,11 @@ if __name__ == "__main__":
         # Accomodate for legacy naming
         ts_files = [TsFile(LEGACY_NAMING_MAP[a] if a in LEGACY_NAMING_MAP else a, b) for (a, b) in names_and_path]
 
-        updater.update(ts_files)
+        def ts_patcher(filename, fp):
+            xml = add_github_links(filename)
+            fp.write(xml)
+            fp.seek(0)
+
+        updater.update(ts_files, ts_patcher=ts_patcher)
     else:
         print(__doc__)

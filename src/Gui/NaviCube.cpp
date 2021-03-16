@@ -269,7 +269,6 @@ public:
 	QColor m_HiliteColor;
 	QColor m_ButtonColor;
 	QColor m_FrontFaceColor;
-	QColor m_BackFaceColor;
 	int m_HiliteId = 0;
 	bool m_MouseDown = false;
 	bool m_Dragging = false;
@@ -365,9 +364,7 @@ void NaviCubeImplementation::OnChange(ParameterGrp::SubjectType &rCaller, Parame
 	if (strcmp(reason,"TextColor") == 0) {
 		m_TextColor.setRgba(rGrp.GetUnsigned(reason, QColor(0, 0, 0, 255).rgba()));
 	} else if (strcmp(reason,"FrontColor") == 0) {
-		m_FrontFaceColor.setRgba(rGrp.GetUnsigned(reason, QColor(192, 192, 192, 255).rgba()));
-	} else if (strcmp(reason,"BackColor") == 0) {
-		m_BackFaceColor.setRgba(rGrp.GetUnsigned(reason, QColor(226, 233, 239, 255).rgba()));
+		m_FrontFaceColor.setRgba(rGrp.GetUnsigned(reason, QColor(226, 233, 239, 192).rgba()));
 	} else if (strcmp(reason,"HiliteColor") == 0) {
 		m_HiliteColor.setRgba(rGrp.GetUnsigned(reason, QColor(170, 226, 255, 255).rgba()));
 	} else if (strcmp(reason,"ButtonColor") == 0) {
@@ -673,8 +670,6 @@ GLuint NaviCubeImplementation::createMenuTex(QtGLWidget* gl, bool forPicking) {
 #endif
 }
 
-
-
 void NaviCubeImplementation::addFace(const Vector3f& x, const Vector3f& z, int frontTex, int backTex, int pickTex, int pickId, bool text) {
 	Vector3f y = x.cross(-z);
 	y = y / y.norm() * x.norm();
@@ -695,7 +690,7 @@ void NaviCubeImplementation::addFace(const Vector3f& x, const Vector3f& z, int f
 	// TEX_BACK_FACE 	backTex
 	// TEX_FRONT_FACE	pickTex,
 	// TEX_TOP 			pickId
-	Face* ff = new Face(
+	Face* FaceFront = new Face(
 		m_IndexArray.size(),
 		4,
 		m_Textures[pickTex],
@@ -703,10 +698,10 @@ void NaviCubeImplementation::addFace(const Vector3f& x, const Vector3f& z, int f
 		m_Textures[pickTex],
 		m_FrontFaceColor,
 		1);
-	m_Faces.push_back(ff);
+	m_Faces.push_back(FaceFront);
 
 	if (text) {
-		Face* ft = new Face(
+		Face* FaceText = new Face(
 			m_IndexArray.size(),
 			4,
 			m_Textures[frontTex],
@@ -714,27 +709,12 @@ void NaviCubeImplementation::addFace(const Vector3f& x, const Vector3f& z, int f
 			m_Textures[pickTex],
 			m_TextColor,
 			2);
-		m_Faces.push_back(ft);
+		m_Faces.push_back(FaceText);
 
 	}
 
 	for (int i = 0; i < 4; i++)
 		m_IndexArray.push_back(t + i);
-
-	Face* bf = new Face(
-		m_IndexArray.size(),
-		4,
-		m_Textures[backTex],
-		pickId,
-		m_Textures[backTex],
-		m_BackFaceColor,
-		0
-		);
-
-	m_Faces.push_back(bf);
-
-	for (int i = 0; i < 4; i++)
-		m_IndexArray.push_back(t + 4 - 1 - i);
 }
 
 void NaviCubeImplementation::initNaviCube(QtGLWidget* gl) {

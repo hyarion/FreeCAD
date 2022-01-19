@@ -61,7 +61,6 @@ macro(InitializeFreeCADBuildOptions)
         option(FREECAD_LIBPACK_USE "Use the LibPack to Build FreeCAD (only Win32 so far)." OFF)
         set(FREECAD_LIBPACK_DIR ""  CACHE PATH  "Directory of the FreeCAD LibPack")
     endif(MSVC)
-    option(BUILD_QT5 "Build with Qt5." ON)
 
     # https://blog.kitware.com/constraining-values-with-comboboxes-in-cmake-cmake-gui/
     set(FREECAD_USE_OCC_VARIANT "Community Edition"  CACHE STRING  "Official OpenCASCADE version or community edition")
@@ -70,18 +69,6 @@ macro(InitializeFreeCADBuildOptions)
                  "Community Edition"
     )
 
-    if (BUILD_QT5)
-      option(FREECAD_USE_QTOPENGL_WIDGET "Replace QGLWidget with QOpenGLWidget." ON)
-      if (FREECAD_USE_QTOPENGL_WIDGET)
-          set(HAVE_QT5_OPENGL 1 )
-      endif()
-      set(FREECAD_USE_QTWEBMODULE "Automatic"  CACHE STRING  "Qt Webkit or Qt WebEngine")
-      set_property(CACHE FREECAD_USE_QTWEBMODULE PROPERTY STRINGS
-                   "Automatic"
-                   "Qt Webkit"
-                   "Qt WebEngine"
-      )
-    endif()
     configure_file(${CMAKE_SOURCE_DIR}/src/QtOpenGL.h.cmake ${CMAKE_BINARY_DIR}/src/QtOpenGL.h)
 
     if(APPLE)

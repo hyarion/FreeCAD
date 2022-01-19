@@ -144,7 +144,11 @@ protected:
     bool dropMimeData(QTreeWidgetItem *parent, int index, const QMimeData *data,
                       Qt::DropAction action) override;
     Qt::DropActions supportedDropActions () const override;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    QMimeData * mimeData (const QList<QTreeWidgetItem *> &items) const override;
+#else
     QMimeData * mimeData (const QList<QTreeWidgetItem *> items) const override;
+#endif
     void dragEnterEvent(QDragEnterEvent * event) override;
     void dragLeaveEvent(QDragLeaveEvent * event) override;
     void dragMoveEvent(QDragMoveEvent *event) override;

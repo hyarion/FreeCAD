@@ -49,7 +49,6 @@
 # include <QPainter>
 # include <QTextStream>
 # include <QKeyEvent>
-# include <QDesktopWidget>
 
 # include <boost_bind_bind.hpp>
 #endif

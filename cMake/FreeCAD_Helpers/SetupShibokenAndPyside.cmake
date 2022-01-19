@@ -1,6 +1,13 @@
 macro(SetupShibokenAndPyside)
 # -------------------------------- Shiboken/PySide ------------------------
 
+# FIXME Find shiboken6 and pyside6 in a less hardcoded way
+if(Qt6_FOUND)
+    set(SHIBOKEN_INCLUDE_DIR "/opt/homebrew/lib/python3.9/site-packages/shiboken6/")
+    set(PYSIDE_INCLUDE_DIR "/opt/homebrew/lib/python3.9/site-packages/pyside6/")
+    find_package(PySide2Tools QUIET) #REQUIRED # PySide2 utilities (pyside2-uic & pyside2-rcc)
+else()
+
     if(DEFINED MACPORTS_PREFIX)
         find_package(Shiboken REQUIRED HINTS "${PYTHON_LIBRARY_DIR}/cmake")
         find_package(PySide REQUIRED HINTS "${PYTHON_LIBRARY_DIR}/cmake")
@@ -57,77 +64,78 @@ macro(SetupShibokenAndPyside)
                 "PySide2Tools not found.\n"
                 "=======================\n")
     endif(NOT PYSIDE2_TOOLS_FOUND)
+endif(Qt6_FOUND)
 
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/Ext/PySide)
-    file(WRITE ${CMAKE_BINARY_DIR}/Ext/PySide/__init__.py "# PySide wrapper\n"
-                                  "from PySide2 import __version__\n"
-                                  "from PySide2 import __version_info__\n")
-    file(WRITE ${CMAKE_BINARY_DIR}/Ext/PySide/QtCore.py "from PySide2.QtCore import *\n\n"
-                                "#QCoreApplication.CodecForTr=0\n"
-                                "#QCoreApplication.UnicodeUTF8=1\n")
-    file(WRITE ${CMAKE_BINARY_DIR}/Ext/PySide/QtGui.py  "from PySide2.QtGui import *\n"
-                                "from PySide2.QtWidgets import *\n"
-                                "QHeaderView.setResizeMode = QHeaderView.setSectionResizeMode\n")
-    file(WRITE ${CMAKE_BINARY_DIR}/Ext/PySide/QtSvg.py  "from PySide2.QtSvg import *\n")
-    file(WRITE ${CMAKE_BINARY_DIR}/Ext/PySide/QtUiTools.py  "from PySide2.QtUiTools import *\n")
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/Ext/PySide)
+file(WRITE ${CMAKE_BINARY_DIR}/Ext/PySide/__init__.py "# PySide wrapper\n"
+                              "from PySide2 import __version__\n"
+                              "from PySide2 import __version_info__\n")
+file(WRITE ${CMAKE_BINARY_DIR}/Ext/PySide/QtCore.py "from PySide2.QtCore import *\n\n"
+                            "#QCoreApplication.CodecForTr=0\n"
+                            "#QCoreApplication.UnicodeUTF8=1\n")
+file(WRITE ${CMAKE_BINARY_DIR}/Ext/PySide/QtGui.py  "from PySide2.QtGui import *\n"
+                            "from PySide2.QtWidgets import *\n"
+                            "QHeaderView.setResizeMode = QHeaderView.setSectionResizeMode\n")
+file(WRITE ${CMAKE_BINARY_DIR}/Ext/PySide/QtSvg.py  "from PySide2.QtSvg import *\n")
+file(WRITE ${CMAKE_BINARY_DIR}/Ext/PySide/QtUiTools.py  "from PySide2.QtUiTools import *\n")
 
-    if(APPLE AND NOT BUILD_WITH_CONDA)
-        install(
-        DIRECTORY
-            ${CMAKE_BINARY_DIR}/Ext/PySide
-        DESTINATION
-            MacOS
-        )
-    else()
-        install(
-        DIRECTORY
-            ${CMAKE_BINARY_DIR}/Ext/PySide
-        DESTINATION
-            Ext
-        )
-    endif()
-
-    # If shiboken cannot be found the build option will be set to OFF
-    if(SHIBOKEN_INCLUDE_DIR)
-        option(FREECAD_USE_SHIBOKEN "Links to the shiboken library at build time. If OFF its Python module is imported at runtime" ON)
-    else()
-        option(FREECAD_USE_SHIBOKEN "Links to the shiboken library at build time. If OFF its Python module is imported at runtime" OFF)
-
-        # Now try to import the shiboken Python module and print a warning if it can't be loaded
-        execute_process(
-        COMMAND ${PYTHON_EXECUTABLE} -c "import shiboken2"
-        RESULT_VARIABLE FAILURE
-        OUTPUT_VARIABLE PRINT_OUTPUT
-        )
-
-        if(FAILURE)
-            message("=================================\n"
-                    "shiboken Python module not found.\n"
-                    "=================================\n")
-        endif()
-    endif()
-
-    # If PySide cannot be found the build option will be set to OFF
-    if(PYSIDE_INCLUDE_DIR)
-        option(FREECAD_USE_PYSIDE "Links to the PySide libraries at build time." ON)
-    else()
-        option(FREECAD_USE_PYSIDE "Links to the PySide libraries at build time." OFF)
-    endif()
-
-    # Independent of the build option PySide modules must be loaded at runtime. Print a warning if it fails.
-    execute_process(
-        COMMAND ${PYTHON_EXECUTABLE} -c "import PySide2;import os;print(os.path.dirname(PySide2.__file__), end='')"
-        RESULT_VARIABLE FAILURE
-        OUTPUT_VARIABLE PRINT_OUTPUT
+if(APPLE AND NOT BUILD_WITH_CONDA)
+    install(
+    DIRECTORY
+        ${CMAKE_BINARY_DIR}/Ext/PySide
+    DESTINATION
+        MacOS
     )
+else()
+    install(
+    DIRECTORY
+        ${CMAKE_BINARY_DIR}/Ext/PySide
+    DESTINATION
+        Ext
+    )
+endif()
+
+# If shiboken cannot be found the build option will be set to OFF
+if(SHIBOKEN_INCLUDE_DIR)
+    option(FREECAD_USE_SHIBOKEN "Links to the shiboken library at build time. If OFF its Python module is imported at runtime" ON)
+else()
+    option(FREECAD_USE_SHIBOKEN "Links to the shiboken library at build time. If OFF its Python module is imported at runtime" OFF)
+
+    # Now try to import the shiboken Python module and print a warning if it can't be loaded
+    execute_process(
+    COMMAND ${PYTHON_EXECUTABLE} -c "import shiboken2"
+    RESULT_VARIABLE FAILURE
+    OUTPUT_VARIABLE PRINT_OUTPUT
+    )
+
     if(FAILURE)
-        message("================================\n"
-                "PySide2 Python module not found.\n"
-                "================================\n")
-    else()
-        message(STATUS "===============================================\n"
-                       "PySide2 Python module found at ${PRINT_OUTPUT}.\n"
-                       "===============================================\n")
+        message("=================================\n"
+                "shiboken Python module not found.\n"
+                "=================================\n")
     endif()
+endif()
+
+# If PySide cannot be found the build option will be set to OFF
+if(PYSIDE_INCLUDE_DIR)
+    option(FREECAD_USE_PYSIDE "Links to the PySide libraries at build time." ON)
+else()
+    option(FREECAD_USE_PYSIDE "Links to the PySide libraries at build time." OFF)
+endif()
+
+# Independent of the build option PySide modules must be loaded at runtime. Print a warning if it fails.
+execute_process(
+    COMMAND ${PYTHON_EXECUTABLE} -c "import PySide2;import os;print(os.path.dirname(PySide2.__file__), end='')"
+    RESULT_VARIABLE FAILURE
+    OUTPUT_VARIABLE PRINT_OUTPUT
+)
+if(FAILURE)
+    message("================================\n"
+            "PySide2 Python module not found.\n"
+            "================================\n")
+else()
+    message(STATUS "===============================================\n"
+                   "PySide2 Python module found at ${PRINT_OUTPUT}.\n"
+                   "===============================================\n")
+endif()
 
 endmacro(SetupShibokenAndPyside)

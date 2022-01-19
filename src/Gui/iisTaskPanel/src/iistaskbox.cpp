@@ -32,7 +32,7 @@ void iisTaskBox::init()
 	myScheme = iisTaskPanelScheme::defaultScheme();
 
 	QVBoxLayout *vbl = new QVBoxLayout();
-	vbl->setMargin(0);
+	vbl->setContentsMargins(0, 0, 0, 0);
 	vbl->setSpacing(0);
 	setLayout(vbl);
 

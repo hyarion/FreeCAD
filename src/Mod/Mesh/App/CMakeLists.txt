@@ -19,14 +19,19 @@ set(Mesh_LIBS
     FreeCADApp
 )
 
-if (BUILD_QT5)
-    include_directories(
-        ${Qt5Concurrent_INCLUDE_DIRS}
-    )
-    list(APPEND Mesh_LIBS
-        ${Qt5Concurrent_LIBRARIES}
-    )
+if (Qt6_FOUND)
+    set(QtConcurrent_INCLUDE_DIRS ${Qt6Concurrent_INCLUDE_DIRS})
+    set(QtConcurrent_LIBRARIES ${Qt6Concurrent_LIBRARIES})
+else()
+    set(QtConcurrent_INCLUDE_DIRS ${Qt5Concurrent_INCLUDE_DIRS})
+    set(QtConcurrent_LIBRARIES ${Qt5Concurrent_LIBRARIES})
 endif()
+include_directories(
+    ${QtConcurrent_INCLUDE_DIRS}
+)
+list(APPEND Mesh_LIBS
+    ${QtConcurrent_LIBRARIES}
+)
 
 generate_from_xml(EdgePy)
 generate_from_xml(FacetPy)

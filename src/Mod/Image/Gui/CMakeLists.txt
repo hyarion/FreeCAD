@@ -35,12 +35,12 @@ set(ImageGui_UIC_SRCS
     ImageOrientationDialog.ui
 )
 
-if(BUILD_QT5)
+if(Qt6_FOUND)
+    qt6_add_resources(ImageGui_QRC_SRCS ${ImageGui_RES_SRCS})
+    qt6_wrap_ui(ImageGui_UIC_HDRS ${ImageGui_UIC_SRCS})
+else()
     qt5_add_resources(ImageGui_QRC_SRCS ${ImageGui_RES_SRCS})
     qt5_wrap_ui(ImageGui_UIC_HDRS ${ImageGui_UIC_SRCS})
-else()
-    qt4_add_resources(ImageGui_QRC_SRCS ${ImageGui_RES_SRCS})
-    qt4_wrap_ui(ImageGui_UIC_HDRS ${ImageGui_UIC_SRCS})
 endif()
 
 SET(ImageGui_SRCS
@@ -63,17 +63,10 @@ SET(ImageGui_SRCS
     XpmImages.h
 )
 
-if(FREECAD_USE_QTOPENGL_WIDGET)
-    list(APPEND ImageGui_SRCS
-        OpenGLImageBox.cpp
-        OpenGLImageBox.h
-    )
-else()
-    list(APPEND ImageGui_SRCS
-        GLImageBox.cpp
-        GLImageBox.h
-    )
-endif()
+list(APPEND ImageGui_SRCS
+    OpenGLImageBox.cpp
+    OpenGLImageBox.h
+)
 
 SET(ImageGuiIcon_SVG
     Resources/icons/ImageWorkbench.svg

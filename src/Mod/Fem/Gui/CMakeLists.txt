@@ -101,10 +101,10 @@ if(BUILD_FEM_VTK)
 endif(BUILD_FEM_VTK)
 
 
-if(BUILD_QT5)
-    qt5_wrap_ui(FemGui_UIC_HDRS ${FemGui_UIC_SRCS})
+if(Qt6_FOUND)
+    qt6_wrap_ui(FemGui_UIC_HDRS ${FemGui_UIC_SRCS})
 else()
-    qt4_wrap_ui(FemGui_UIC_HDRS ${FemGui_UIC_SRCS})
+    qt5_wrap_ui(FemGui_UIC_HDRS ${FemGui_UIC_SRCS})
 endif()
 
 
@@ -189,10 +189,10 @@ SET(FemGui_DLG_SRCS
 SOURCE_GROUP("Constraint-Dialogs" FILES ${FemGui_DLG_SRCS})
 
 
-if(BUILD_QT5)
-    qt5_add_resources(FemResource_SRCS Resources/Fem.qrc)
+if(Qt6_FOUND)
+    qt6_add_resources(FemResource_SRCS Resources/Fem.qrc)
 else()
-    qt4_add_resources(FemResource_SRCS Resources/Fem.qrc)
+    qt5_add_resources(FemResource_SRCS Resources/Fem.qrc)
 endif()
 SOURCE_GROUP("Resources" FILES ${FemResource_SRCS})
 

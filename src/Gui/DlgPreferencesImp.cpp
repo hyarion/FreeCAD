@@ -27,7 +27,6 @@
 # include <algorithm>
 # include <QApplication>
 # include <QDebug>
-# include <QDesktopWidget>
 # include <QGenericReturnArgument>
 # include <QMessageBox>
 # include <QScrollArea>

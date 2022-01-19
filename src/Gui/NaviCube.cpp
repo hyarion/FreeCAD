@@ -110,9 +110,7 @@
 #include <QPainterPath>
 #include <QApplication>
 
-#if defined(HAVE_QT5_OPENGL)
-# include <QOpenGLTexture>
-#endif
+#include <QOpenGLTexture>
 
 //#include <OpenGL/glu.h>
 #include <Eigen/Dense>
@@ -285,9 +283,7 @@ public:
 	map<int,GLuint> m_Textures;
 	vector<Face*> m_Faces;
 	vector<int> m_Buttons;
-#if defined(HAVE_QT5_OPENGL)
 	vector<QOpenGLTexture *> m_glTextures;
-#endif
 	static vector<string> m_commands;
 	static vector<string> m_labels;
 	QMenu* m_Menu;
@@ -350,10 +346,8 @@ NaviCubeImplementation::~NaviCubeImplementation() {
 		delete m_PickingFramebuffer;
 	for (vector<Face*>::iterator f = m_Faces.begin(); f != m_Faces.end(); f++)
 		delete *f;
-#if defined(HAVE_QT5_OPENGL)
 	for (vector<QOpenGLTexture *>::iterator t = m_glTextures.begin(); t != m_glTextures.end(); t++)
 		delete *t;
-#endif
 }
 
 void NaviCubeImplementation::OnChange(ParameterGrp::SubjectType &rCaller, ParameterGrp::MessageType reason)
@@ -473,16 +467,12 @@ GLuint NaviCubeImplementation::createCubeFaceTex(QtGLWidget* gl, float gap, cons
 	}
 
 	paint.end();
-#if !defined(HAVE_QT5_OPENGL)
-	return gl->bindTexture(image);
-#else
     Q_UNUSED(gl);
     QOpenGLTexture *texture = new QOpenGLTexture(image.mirrored());
     m_glTextures.push_back(texture);
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
     texture->setMagnificationFilter(QOpenGLTexture::Linear);
     return texture->textureId();
-#endif
 }
 
 
@@ -581,16 +571,12 @@ GLuint NaviCubeImplementation::createButtonTex(QtGLWidget* gl, int button) {
 	painter.end();
 	//image.save(str(enum2str(button))+str(".png"));
 
-#if !defined(HAVE_QT5_OPENGL)
-	return gl->bindTexture(image);
-#else
     Q_UNUSED(gl);
     QOpenGLTexture *texture = new QOpenGLTexture(image.mirrored());
     m_glTextures.push_back(texture);
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
     texture->setMagnificationFilter(QOpenGLTexture::Linear);
     return texture->textureId();
-#endif
 }
 
 GLuint NaviCubeImplementation::createMenuTex(QtGLWidget* gl, bool forPicking) {
@@ -656,16 +642,12 @@ GLuint NaviCubeImplementation::createMenuTex(QtGLWidget* gl, bool forPicking) {
 		painter.fillPath(path5, QColor(64,64,64));
 		}
 	painter.end();
-#if !defined(HAVE_QT5_OPENGL)
-	return gl->bindTexture(image);
-#else
     Q_UNUSED(gl);
     QOpenGLTexture *texture = new QOpenGLTexture(image.mirrored());
     m_glTextures.push_back(texture);
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
     texture->setMagnificationFilter(QOpenGLTexture::Linear);
     return texture->textureId();
-#endif
 }
 
 void NaviCubeImplementation::addFace(const Vector3f& x, const Vector3f& z, int frontTex, int pickTex, int pickId, bool text) {
@@ -1528,9 +1510,9 @@ bool NaviCubeImplementation::mouseReleased(short x, short y) {
 		case TEX_BOTTOM_LEFT_FRONT:
 			viewRot = setView(rot - 90, 90 + tilt);
 			// we have 3 possible end states:
-			// - z-axis is not rotated larger than 120 ° from (0, 1, 0) -> we are already there
-			// - y-axis is not rotated larger than 120 ° from (0, 1, 0)
-			// - x-axis is not rotated larger than 120 ° from (0, 1, 0)
+			// - z-axis is not rotated larger than 120 ï¿½ from (0, 1, 0) -> we are already there
+			// - y-axis is not rotated larger than 120 ï¿½ from (0, 1, 0)
+			// - x-axis is not rotated larger than 120 ï¿½ from (0, 1, 0)
 			if (toNearest) {
 				if (ViewRotMatrix[1][0] > 0.4823)
 					viewRot = rotateView(viewRot, 0, -120, SbVec3f(1, 1, 1));

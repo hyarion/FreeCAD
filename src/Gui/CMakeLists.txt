@@ -78,55 +78,91 @@ else(MSVC)
     )
 endif(MSVC)
 
-if (BUILD_QT5)
+if (Qt${QT_VERSION_MAJOR}WebEngineWidgets_FOUND AND BUILD_WITH_CONDA)
+    add_definitions(-DQTWEBENGINE)
+endif()
 
-    if (Qt5WebEngineWidgets_FOUND AND BUILD_WITH_CONDA)
-        add_definitions(-DQTWEBENGINE)
-    endif()
+if (Qt6_FOUND)
+    set(QtCore_INCLUDE_DIRS ${Qt6Core_INCLUDE_DIRS})
+    set(QtWidgets_INCLUDE_DIRS ${Qt6Widgets_INCLUDE_DIRS})
+    set(QtOpenGL_INCLUDE_DIRS ${Qt6OpenGL_INCLUDE_DIRS})
+    set(QtPrintSupport_INCLUDE_DIRS ${Qt6PrintSupport_INCLUDE_DIRS})
+    set(QtSvg_INCLUDE_DIRS ${Qt6Svg_INCLUDE_DIRS})
+    set(QtNetwork_INCLUDE_DIRS ${Qt6Network_INCLUDE_DIRS})
+    set(QtUiTools_INCLUDE_DIRS ${Qt6UiTools_INCLUDE_DIRS})
 
-    include_directories(
-        ${Qt5Core_INCLUDE_DIRS}
-        ${Qt5Widgets_INCLUDE_DIRS}
-        ${Qt5OpenGL_INCLUDE_DIRS}
-        ${Qt5PrintSupport_INCLUDE_DIRS}
-        ${Qt5Svg_INCLUDE_DIRS}
-        ${Qt5Network_INCLUDE_DIRS}
-        ${Qt5UiTools_INCLUDE_DIRS}
-    )
-    list(APPEND FreeCADGui_LIBS
-        ${Qt5Core_LIBRARIES}
-        ${Qt5Widgets_LIBRARIES}
-        ${Qt5OpenGL_LIBRARIES}
-        ${Qt5PrintSupport_LIBRARIES}
-        ${Qt5Svg_LIBRARIES}
-        ${Qt5Network_LIBRARIES}
-        ${Qt5UiTools_LIBRARIES}
-    )
-    if(${Qt5WinExtras_FOUND})
-      include_directories(
-        ${Qt5WinExtras_INCLUDE_DIRS}
-      )
-      list(APPEND FreeCADGui_LIBS
-        ${Qt5WinExtras_LIBRARIES}
-      )
-    endif()
+    set(QtCore_LIBRARIES ${Qt6Core_LIBRARIES})
+    set(QtWidgets_LIBRARIES ${Qt6Widgets_LIBRARIES})
+    set(QtOpenGL_LIBRARIES ${Qt6OpenGL_LIBRARIES})
+    set(QtPrintSupport_LIBRARIES ${Qt5PrintSupport_LIBRARIES})
+    set(QtSvg_LIBRARIES ${Qt6Svg_LIBRARIES})
+    set(QtNetwork_LIBRARIES ${Qt6Network_LIBRARIES})
+    set(QtUiTools_LIBRARIES ${Qt6UiTools_LIBRARIES})
+
+    set(QtWinExtras_INCLUDE_DIRS ${Qt6WinExtras_INCLUDE_DIRS})
+    set(QtWinExtras_LIBRARIES ${Qt6WinExtras_LIBRARIES})
 else()
-    include_directories(
-        ${QT_INCLUDE_DIR}
-    )
-    list(APPEND FreeCADGui_LIBS
-        ${QT_LIBRARIES}
-        ${QT_QTUITOOLS_LIBRARY}
-    )
+    set(QtCore_INCLUDE_DIRS ${Qt5Core_INCLUDE_DIRS})
+    set(QtWidgets_INCLUDE_DIRS ${Qt5Widgets_INCLUDE_DIRS})
+    set(QtOpenGL_INCLUDE_DIRS ${Qt5OpenGL_INCLUDE_DIRS})
+    set(QtPrintSupport_INCLUDE_DIRS ${Qt5PrintSupport_INCLUDE_DIRS})
+    set(QtSvg_INCLUDE_DIRS ${Qt5Svg_INCLUDE_DIRS})
+    set(QtNetwork_INCLUDE_DIRS ${Qt5Network_INCLUDE_DIRS})
+    set(QtUiTools_INCLUDE_DIRS ${Qt5UiTools_INCLUDE_DIRS})
+
+    set(QtCore_LIBRARIES ${Qt5Core_LIBRARIES})
+    set(QtWidgets_LIBRARIES ${Qt5Widgets_LIBRARIES})
+    set(QtOpenGL_LIBRARIES ${Qt5OpenGL_LIBRARIES})
+    set(QtPrintSupport_LIBRARIES ${Qt5PrintSupport_LIBRARIES})
+    set(QtSvg_LIBRARIES ${Qt5Svg_LIBRARIES})
+    set(QtNetwork_LIBRARIES ${Qt5Network_LIBRARIES})
+    set(QtUiTools_LIBRARIES ${Qt5UiTools_LIBRARIES})
+
+    set(QtWinExtras_INCLUDE_DIRS ${Qt5WinExtras_INCLUDE_DIRS})
+    set(QtWinExtras_LIBRARIES ${Qt5WinExtras_LIBRARIES})
+endif()
+
+include_directories(
+    ${QtCore_INCLUDE_DIRS}
+    ${QtWidgets_INCLUDE_DIRS}
+    ${QtOpenGL_INCLUDE_DIRS}
+    ${QtPrintSupport_INCLUDE_DIRS}
+    ${QtSvg_INCLUDE_DIRS}
+    ${QtNetwork_INCLUDE_DIRS}
+    ${QtUiTools_INCLUDE_DIRS}
+)
+list(APPEND FreeCADGui_LIBS
+    ${QtCore_LIBRARIES}
+    ${QtWidgets_LIBRARIES}
+    ${QtOpenGL_LIBRARIES}
+    ${QtPrintSupport_LIBRARIES}
+    ${QtSvg_LIBRARIES}
+    ${QtNetwork_LIBRARIES}
+    ${QtUiTools_LIBRARIES}
+)
+if(${QtWinExtras_FOUND})
+  include_directories(
+    ${QtWinExtras_INCLUDE_DIRS}
+  )
+  list(APPEND FreeCADGui_LIBS
+    ${QtWinExtras_LIBRARIES}
+  )
 endif()
 
 IF(SPNAV_FOUND)
     if(SPNAV_USE_X11)
       add_definitions(-DSPNAV_USE_X11)
-      if (BUILD_QT5 AND UNIX AND NOT APPLE)
-        find_package(Qt5X11Extras REQUIRED)
-        include_directories(${Qt5X11Extras_INCLUDE_DIRS})
-        list(APPEND FreeCADGui_LIBS ${Qt5X11Extras_LIBRARIES})
+      if (UNIX AND NOT APPLE)
+        find_package(Qt${QT_VERSION_MAJOR}X11Extras REQUIRED)
+        if (Qt6_FOUND)
+          set(QtX11Extras_INCLUDE_DIRS ${Qt6X11Extras_INCLUDE_DIRS})
+          set(QtX11Extras_LIBRARIES ${Qt6X11Extras_LIBRARIES})
+        else ()
+          set(QtX11Extras_INCLUDE_DIRS ${Qt5X11Extras_INCLUDE_DIRS})
+          set(QtX11Extras_LIBRARIES ${Qt5X11Extras_LIBRARIES})
+        endif ()
+        include_directories(${QtX11Extras_INCLUDE_DIRS})
+        list(APPEND FreeCADGui_LIBS ${QtX11Extras_LIBRARIES})
       endif()
       find_package(X11 QUIET)
       if (X11_FOUND)
@@ -174,11 +210,7 @@ IF(OCULUS_FOUND)
 ENDIF(OCULUS_FOUND)
 
 if(FREECAD_USE_SHIBOKEN)
-    if (BUILD_QT5)
-        add_definitions(-DHAVE_SHIBOKEN2)
-    else()
-        add_definitions(-DHAVE_SHIBOKEN)
-    endif()
+    add_definitions(-DHAVE_SHIBOKEN2)
     include_directories(
         ${SHIBOKEN_INCLUDE_DIR}
     )
@@ -212,14 +244,10 @@ if(FREECAD_USE_PYSIDE)
             )
         endif (TARGET PySide2::pyside2)
     endif (PYSIDE_LIBRARY)
-    if (BUILD_QT5)
-        include_directories(
-            ${PYSIDE_INCLUDE_DIR}/QtWidgets
-        )
-        add_definitions(-DHAVE_PYSIDE2)
-    else()
-        add_definitions(-DHAVE_PYSIDE)
-    endif()
+      include_directories(
+          ${PYSIDE_INCLUDE_DIR}/QtWidgets
+      )
+      add_definitions(-DHAVE_PYSIDE2)
 endif(FREECAD_USE_PYSIDE)
 
 generate_from_xml(DocumentPy)
@@ -280,20 +308,19 @@ SET(FreeCADGui_SDK_MOC_HDRS
 )
 endif(FREECAD_USE_3DCONNEXION AND APPLE)
 
-if (BUILD_QT5)
-    set_property(SOURCE GraphvizView.h GraphvizView.cpp PROPERTY SKIP_AUTOMOC ON)
-    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/moc_GraphvizView-internal.cpp
-        COMMAND ${Qt5Core_MOC_EXECUTABLE} -o ${CMAKE_CURRENT_BINARY_DIR}/moc_GraphvizView-internal.cpp ${CMAKE_CURRENT_SOURCE_DIR}/GraphvizView.cpp
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/GraphvizView.cpp)
-
-    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/moc_GraphvizView.cpp
-        COMMAND ${Qt5Core_MOC_EXECUTABLE} -o ${CMAKE_CURRENT_BINARY_DIR}/moc_GraphvizView.cpp ${CMAKE_CURRENT_SOURCE_DIR}/GraphvizView.h
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/GraphvizView.h)
+if(Qt6_FOUND)
+    set(QtCore_MOC_EXECUTABLE ${Qt6Core_MOC_EXECUTABLE})
 else()
-    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/moc_GraphvizView-internal.cpp
-        COMMAND ${QT_MOC_EXECUTABLE} -o ${CMAKE_CURRENT_BINARY_DIR}/moc_GraphvizView-internal.cpp ${CMAKE_CURRENT_SOURCE_DIR}/GraphvizView.cpp
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/GraphvizView.cpp)
+    set(QtCore_MOC_EXECUTABLE ${Qt5Core_MOC_EXECUTABLE})
 endif()
+set_property(SOURCE GraphvizView.h GraphvizView.cpp PROPERTY SKIP_AUTOMOC ON)
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/moc_GraphvizView-internal.cpp
+    COMMAND ${QtCore_MOC_EXECUTABLE} -o ${CMAKE_CURRENT_BINARY_DIR}/moc_GraphvizView-internal.cpp ${CMAKE_CURRENT_SOURCE_DIR}/GraphvizView.cpp
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/GraphvizView.cpp)
+
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/moc_GraphvizView.cpp
+    COMMAND ${QtCore_MOC_EXECUTABLE} -o ${CMAKE_CURRENT_BINARY_DIR}/moc_GraphvizView.cpp ${CMAKE_CURRENT_SOURCE_DIR}/GraphvizView.h
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/GraphvizView.h)
 
 set_property(SOURCE GraphvizView.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/moc_GraphvizView-internal.cpp)
 set_property(SOURCE GraphvizView.h APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/moc_GraphvizView.cpp)
@@ -368,12 +395,12 @@ SET(Gui_RES_SRCS
     QSint/actionpanel/schemes.qrc
 )
 
-if (BUILD_QT5)
+if (Qt6_FOUND)
+    QT6_ADD_RESOURCES(Gui_QRC_SRCS ${Gui_RES_SRCS})
+    QT6_WRAP_UI(Gui_UIC_HDRS ${Gui_UIC_SRCS})
+else()
     QT5_ADD_RESOURCES(Gui_QRC_SRCS ${Gui_RES_SRCS})
     QT5_WRAP_UI(Gui_UIC_HDRS ${Gui_UIC_SRCS})
-else()
-    QT4_ADD_RESOURCES(Gui_QRC_SRCS ${Gui_RES_SRCS})
-    QT4_WRAP_UI(Gui_UIC_HDRS ${Gui_UIC_SRCS})
 endif()
 SOURCE_GROUP("Uic" FILES ${Gui_UIC_HDRS})
 
@@ -769,10 +796,10 @@ set(iis_MOC_HDRS
     iisTaskPanel/src/iistaskheader.h
 )
 
-if (BUILD_QT5)
-    qt5_wrap_cpp(iis_MOC_SRCS ${iis_MOC_HDRS})
+if (Qt6_FOUND)
+    qt6_wrap_cpp(iis_MOC_SRCS ${iis_MOC_HDRS})
 else()
-    qt4_wrap_cpp(iis_MOC_SRCS ${iis_MOC_HDRS})
+    qt5_wrap_cpp(iis_MOC_SRCS ${iis_MOC_HDRS})
 endif()
 SOURCE_GROUP("Widget\\iisTaskPanel\\Mocs" FILES ${iis_MOC_SRCS})
 
@@ -811,10 +838,10 @@ set(qsint_MOC_HDRS
     QSint/actionpanel/taskheader_p.h
 )
 
-if(BUILD_QT5)
-    qt5_wrap_cpp(qsint_MOC_SRCS ${qsint_MOC_HDRS})
+if(Qt6_FOUND)
+    qt6_wrap_cpp(qsint_MOC_SRCS ${qsint_MOC_HDRS})
 else()
-    qt4_wrap_cpp(qsint_MOC_SRCS ${qsint_MOC_HDRS})
+    qt5_wrap_cpp(qsint_MOC_SRCS ${qsint_MOC_HDRS})
 endif()
 SOURCE_GROUP("Widget\\QSintActionPanel\\Mocs" FILES ${qsint_MOC_SRCS})
 
@@ -892,10 +919,10 @@ SET(Quarter_MOC_HDR
     Quarter/eventhandlers/EventFilter.h
     Quarter/QuarterWidget.h
 )
-if(BUILD_QT5)
-    qt5_wrap_cpp(Quarter_MOC_SRCS ${Quarter_MOC_HDR})
+if(Qt6_FOUND)
+    qt6_wrap_cpp(Quarter_MOC_SRCS ${Quarter_MOC_HDR})
 else()
-    qt4_wrap_cpp(Quarter_MOC_SRCS ${Quarter_MOC_HDR})
+    qt5_wrap_cpp(Quarter_MOC_SRCS ${Quarter_MOC_HDR})
 endif()
 
 SET(Quarter_SRCS 

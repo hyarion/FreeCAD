@@ -40,12 +40,12 @@ set(MeshPartGui_UIC_SRCS
     Tessellation.ui
 )
 
-if(BUILD_QT5)
+if(Qt6_FOUND)
+    qt6_add_resources(MeshPartGui_QRC_SRCS Resources/MeshPart.qrc)
+    qt6_wrap_ui(MeshPartGui_UIC_HDRS ${MeshPartGui_UIC_SRCS})
+else()
     qt5_add_resources(MeshPartGui_QRC_SRCS Resources/MeshPart.qrc)
     qt5_wrap_ui(MeshPartGui_UIC_HDRS ${MeshPartGui_UIC_SRCS})
-else()
-    qt4_add_resources(MeshPartGui_QRC_SRCS Resources/MeshPart.qrc)
-    qt4_wrap_ui(MeshPartGui_UIC_HDRS ${MeshPartGui_UIC_SRCS})
 endif()
 
 SET(MeshPartGui_SRCS

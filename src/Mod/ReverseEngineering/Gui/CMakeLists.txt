@@ -22,10 +22,10 @@ set(ReenGui_LIBS
     MeshGui
 )
 
-if(BUILD_QT5)
-    qt5_add_resources(ReenGui_QRC_SRCS Resources/ReverseEngineering.qrc)
+if(Qt6_FOUND)
+    qt6_add_resources(ReenGui_QRC_SRCS Resources/ReverseEngineering.qrc)
 else()
-    qt4_add_resources(ReenGui_QRC_SRCS Resources/ReverseEngineering.qrc)
+    qt5_add_resources(ReenGui_QRC_SRCS Resources/ReverseEngineering.qrc)
 endif()
 
 set(Dialogs_UIC_SRCS
@@ -35,10 +35,10 @@ set(Dialogs_UIC_SRCS
     SegmentationManual.ui
 )
 
-if(BUILD_QT5)
-    qt5_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
+if(Qt6_FOUND)
+    qt6_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
 else()
-    qt4_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
+    qt5_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
 endif()
 
 SET(Dialogs_SRCS

@@ -18,7 +18,7 @@ iisTaskGroup::iisTaskGroup(QWidget *parent, bool hasHeader)
 	setScheme(iisTaskPanelScheme::defaultScheme());
 
 	QVBoxLayout *vbl = new QVBoxLayout();
-	vbl->setMargin(4);
+	vbl->setContentsMargins(4, 4, 4, 4);
 	vbl->setSpacing(0);
 	setLayout(vbl);
 }

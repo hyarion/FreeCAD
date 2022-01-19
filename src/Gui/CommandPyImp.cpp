@@ -97,17 +97,17 @@ PyObject* CommandPy::listByShortcut(PyObject *args)
         if (action){
             QString spc = QString::fromLatin1(" ");
             if(bIsRegularExp){
-               QRegExp re = QRegExp(QString::fromLatin1(shortcut_to_find));
-               re.setCaseSensitivity(Qt::CaseInsensitive);
-               if (!re.isValid()){
-                   std::stringstream str;
-                   str << "Invalid regular expression:" << ' ' << shortcut_to_find;
-                   throw Py::RuntimeError(str.str());
-               }
-
-               if (re.indexIn(action->shortcut().toString().remove(spc).toUpper()) != -1){
-                   matches.push_back(c->getName());
-               }
+               QRegularExpression re(QString::fromLatin1(shortcut_to_find), QRegularExpression::CaseInsensitiveOption);
+               QRegularExpressionMatch match;
+                if (!re.isValid()){
+                    std::stringstream str;
+                    str << "Invalid regular expression:" << ' ' << shortcut_to_find;
+                    throw Py::RuntimeError(str.str());
+                }
+                qsizetype offset = 0;
+                if (action->shortcut().toString().remove(spc).toUpper().indexOf(re, offset, &match) != -1) {
+                    matches.push_back(c->getName());
+                }
             }
             else if (action->shortcut().toString().remove(spc).toUpper() ==
                      QString::fromLatin1(shortcut_to_find).remove(spc).toUpper()) {

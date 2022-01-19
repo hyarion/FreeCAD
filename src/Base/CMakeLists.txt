@@ -56,16 +56,18 @@ else(MSVC)
     )
 endif(MSVC)
 
-if (BUILD_QT5)
+if (Qt6_FOUND)
+    find_package(Qt6 COMPONENTS Core5Compat REQUIRED)
     include_directories(
-        ${Qt5Core_INCLUDE_DIRS}
+        ${Qt6Core_INCLUDE_DIRS}
+        ${Qt6Core5Compat_INCLUDE_DIRS}
     )
-    list(APPEND FreeCADBase_LIBS ${Qt5Core_LIBRARIES})
+    # Add compatibility layer for QTextCodec
+    list(APPEND FreeCADBase_LIBS ${Qt6Core_LIBRARIES})
+    list(APPEND FreeCADBase_LIBS ${Qt6Core5Compat_LIBRARIES})
 else()
-    include_directories(
-        ${QT_QTCORE_INCLUDE_DIR}
-    )
-    list(APPEND FreeCADBase_LIBS ${QT_QTCORE_LIBRARY})
+    include_directories(${Qt5Core_INCLUDE_DIRS})
+    list(APPEND FreeCADBase_LIBS ${Qt5Core_LIBRARIES})
 endif()
 
 if (BUILD_DYNAMIC_LINK_PYTHON)

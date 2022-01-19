@@ -148,7 +148,7 @@ void AutoSaver::saveDocument(const std::string& name, AutoSaveProperty& saver)
             .arg(QString::fromUtf8(doc->TransientDir.getValue())));
         if (file.open(QFile::WriteOnly)) {
             QTextStream str(&file);
-            str.setCodec("UTF-8");
+            str.setEncoding(QStringConverter::Utf8); // FIXME unnessesary as it is the default, right?
             str << "<?xml version='1.0' encoding='utf-8'?>\n"
                 << "<AutoRecovery SchemaVersion=\"1\">\n";
             str << "  <Status>Created</Status>\n";

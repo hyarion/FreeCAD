@@ -101,11 +101,11 @@ void StdCmdWorkbench::activated(int i)
     catch(const Base::PyException& e) {
         QString msg(QLatin1String(e.what()));
         // ignore '<type 'exceptions.*Error'>' prefixes
-        QRegExp rx;
-        rx.setPattern(QLatin1String("^\\s*<type 'exceptions.\\w*'>:\\s*"));
-        int pos = rx.indexIn(msg);
+        QRegularExpression rx(QLatin1String("^\\s*<type 'exceptions.\\w*'>:\\s*"));
+        QRegularExpressionMatch match;
+        qsizetype pos = msg.indexOf(rx, pos, &match);
         if (pos != -1)
-            msg = msg.mid(rx.matchedLength());
+            msg = msg.mid(match.capturedLength());
         QMessageBox::critical(getMainWindow(), QObject::tr("Cannot load workbench"), msg);
     }
     catch(...) {

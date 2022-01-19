@@ -8,20 +8,20 @@ include_directories(
     ${XercesC_INCLUDE_DIRS}
 )
 
-if(BUILD_QT5)
-    include_directories(
-        ${Qt5Network_INCLUDE_DIRS}
-    )
-    set(Web_LIBS
-         FreeCADApp
-         ${Qt5Network_LIBRARIES}
-    )
+if(Qt6_FOUND)
+    set(QtNetwork_INCLUDE_DIRS ${Qt6Network_INCLUDE_DIRS})
+    set(QtNetwork_LIBRARIES ${Qt6Network_LIBRARIES})
 else()
-    set(Web_LIBS
-         FreeCADApp
-         ${QT_LIBRARIES}
-    )
+    set(QtNetwork_INCLUDE_DIRS ${Qt5Network_INCLUDE_DIRS})
+    set(QtNetwork_LIBRARIES ${Qt5Network_LIBRARIES})
 endif()
+include_directories(
+    ${QtNetwork_INCLUDE_DIRS}
+)
+set(Web_LIBS
+     FreeCADApp
+     ${QtNetwork_LIBRARIES}
+)
 
 SET(Web_SRCS
     AppWeb.cpp

@@ -29,10 +29,10 @@ set(PartDesignGui_LIBS
     FreeCADGui
 )
 
-if(BUILD_QT5)
-    qt5_add_resources(PartDesignGui_SRCS Resources/PartDesign.qrc)
+if(Qt6_FOUND)
+    qt6_add_resources(PartDesignGui_SRCS Resources/PartDesign.qrc)
 else()
-    qt4_add_resources(PartDesignGui_SRCS Resources/PartDesign.qrc)
+    qt5_add_resources(PartDesignGui_SRCS Resources/PartDesign.qrc)
 endif()
 
 set(PartDesignGui_UIC_SRCS
@@ -62,10 +62,10 @@ set(PartDesignGui_UIC_SRCS
     TaskHelixParameters.ui
 )
 
-if(BUILD_QT5)
-    qt5_wrap_ui(PartDesignGui_UIC_HDRS ${PartDesignGui_UIC_SRCS})
+if(Qt6_FOUND)
+    qt6_wrap_ui(PartDesignGui_UIC_HDRS ${PartDesignGui_UIC_SRCS})
 else()
-    qt4_wrap_ui(PartDesignGui_UIC_HDRS ${PartDesignGui_UIC_SRCS})
+    qt5_wrap_ui(PartDesignGui_UIC_HDRS ${PartDesignGui_UIC_SRCS})
 endif()
 
 SET(PartDesignGuiViewProvider_SRCS

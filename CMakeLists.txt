@@ -81,6 +81,8 @@ if(BUILD_VR)
     find_package(Rift)
 endif(BUILD_VR)
 
+find_package(TBB REQUIRED)
+
 SetLibraryVersions()
 SetGlobalCompilerAndLinkerSettings()
 

@@ -26,7 +26,6 @@
 # include <cstdlib>
 # include <QApplication>
 # include <QClipboard>
-# include <QDesktopWidget>
 # include <QDesktopServices>
 # include <QDialogButtonBox>
 # include <QLocale>

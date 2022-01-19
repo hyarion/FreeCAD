@@ -63,7 +63,16 @@ set(FreeCADApp_LIBS
     ${Boost_LIBRARIES}
 )
 
-if (BUILD_QT5)
+if (Qt6_FOUND)
+    include_directories(
+        ${Qt6Core_INCLUDE_DIRS}
+        ${Qt6Xml_INCLUDE_DIRS}
+    )
+    list(APPEND FreeCADApp_LIBS
+         ${Qt6Core_LIBRARIES}
+         ${Qt6Xml_LIBRARIES}
+    )
+else()
     include_directories(
         ${Qt5Core_INCLUDE_DIRS}
         ${Qt5Xml_INCLUDE_DIRS}
@@ -71,15 +80,6 @@ if (BUILD_QT5)
     list(APPEND FreeCADApp_LIBS
          ${Qt5Core_LIBRARIES}
          ${Qt5Xml_LIBRARIES}
-    )
-else()
-    include_directories(
-        ${QT_QTCORE_INCLUDE_DIR}
-        ${QT_QTXML_INCLUDE_DIR}
-    )
-    list(APPEND FreeCADApp_LIBS
-        ${QT_QTCORE_LIBRARY}
-        ${QT_QTXML_LIBRARY}
     )
 endif()
 

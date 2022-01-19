@@ -67,7 +67,9 @@ GUIApplication::GUIApplication(int & argc, char ** argv)
 {
     connect(this, SIGNAL(commitDataRequest(QSessionManager &)),
             SLOT(commitData(QSessionManager &)), Qt::DirectConnection);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     setFallbackSessionManagementEnabled(false);
+#endif
 }
 
 GUIApplication::~GUIApplication()
@@ -338,8 +340,8 @@ bool KeyboardFilter::eventFilter(QObject* obj, QEvent* ev)
         int key = kev->key();
         if ((mod & Qt::KeypadModifier) && (key == Qt::Key_Period || key == Qt::Key_Comma))
         {
-            QChar dp = QLocale().decimalPoint();
-            if (key != dp) {
+            QChar dp = QLocale().decimalPoint().front();
+            if (key != dp.digitValue()) {
                 QKeyEvent modifiedKeyEvent(kev->type(), dp.digitValue(), mod, QString(dp), kev->isAutoRepeat(), kev->count());
                 qApp->sendEvent(obj, &modifiedKeyEvent);
                 return true;

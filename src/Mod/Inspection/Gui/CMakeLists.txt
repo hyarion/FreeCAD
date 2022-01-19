@@ -19,12 +19,12 @@ set(Dialogs_UIC_SRCS
     VisualInspection.ui
 )
 
-if(BUILD_QT5)
+if(Qt6_FOUND)
+    qt6_add_resources(Inspection_QRC_SRCS Resources/Inspection.qrc)
+    qt6_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
+else()
     qt5_add_resources(Inspection_QRC_SRCS Resources/Inspection.qrc)
     qt5_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
-else()
-    qt4_add_resources(Inspection_QRC_SRCS Resources/Inspection.qrc)
-    qt4_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
 endif()
 
 SET(Dialogs_SRCS

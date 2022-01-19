@@ -20,11 +20,7 @@
 
 #include <Gui/MDIView.h>
 #include <QtOpenGL.h>
-#if defined(HAVE_QT5_OPENGL)
 #include "OpenGLImageBox.h"
-#else
-#include "GLImageBox.h"
-#endif
 #include <Mod/Image/ImageGlobal.h>
 
 class QSlider;

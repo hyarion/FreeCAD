@@ -14,10 +14,10 @@ set(Dialogs_UIC_SRCS
     UnitTest.ui
 )
 
-if(BUILD_QT5)
-    qt5_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
+if(Qt6_FOUND)
+    qt6_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
 else()
-    qt4_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
+    qt5_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
 endif()
 
 SET(Dialogs_SRCS
@@ -30,10 +30,10 @@ SET(Dialogs_SRCS
 )
 SOURCE_GROUP("Dialogs" FILES ${Dialogs_SRCS})
 
-if(BUILD_QT5)
-    qt5_add_resources(Resource_SRCS Resources/Test.qrc)
+if(Qt6_FOUND)
+    qt6_add_resources(Resource_SRCS Resources/Test.qrc)
 else()
-    qt4_add_resources(Resource_SRCS Resources/Test.qrc)
+    qt5_add_resources(Resource_SRCS Resources/Test.qrc)
 endif()
 
 SET(Resource_SRCS

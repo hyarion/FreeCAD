@@ -16,12 +16,12 @@ set(StartGui_UIC_SRCS
     DlgStartPreferences.ui
 )
 
-if(BUILD_QT5)
+if(Qt6_FOUND)
+    qt6_add_resources(Start_QRC_SRCS Resources/Start.qrc)
+    qt6_wrap_ui(StartGui_UIC_HDRS ${StartGui_UIC_SRCS})
+else()
     qt5_add_resources(Start_QRC_SRCS Resources/Start.qrc)
     qt5_wrap_ui(StartGui_UIC_HDRS ${StartGui_UIC_SRCS})
-else()
-    qt4_add_resources(Start_QRC_SRCS Resources/Start.qrc)
-    qt4_wrap_ui(StartGui_UIC_HDRS ${StartGui_UIC_SRCS})
 endif()
 
 SET(StartGui_SRCS

@@ -34,7 +34,6 @@
 # include <QCloseEvent>
 # include <QContextMenuEvent>
 # include <QDesktopServices>
-# include <QDesktopWidget>
 # include <QDockWidget>
 # include <QFontMetrics>
 # include <QKeySequence>

@@ -46,12 +46,12 @@ set(RaytracingGui_UIC_SRCS
     DlgSettingsRay.ui
 )
 
-if (BUILD_QT5)
+if(Qt6_FOUND)
+    qt6_add_resources(Resource_SRCS Resources/Raytracing.qrc)
+    qt6_wrap_ui(RaytracingGui_UIC_HDRS ${RaytracingGui_UIC_SRCS})
+else()
     qt5_add_resources(Resource_SRCS Resources/Raytracing.qrc)
     qt5_wrap_ui(RaytracingGui_UIC_HDRS ${RaytracingGui_UIC_SRCS})
-else()
-    qt4_add_resources(Resource_SRCS Resources/Raytracing.qrc)
-    qt4_wrap_ui(RaytracingGui_UIC_HDRS ${RaytracingGui_UIC_SRCS})
 endif()
 
 SET(RaytracingGui_SRCS

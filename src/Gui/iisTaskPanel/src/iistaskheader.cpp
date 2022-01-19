@@ -30,7 +30,7 @@ iisTaskHeader::iisTaskHeader(const QIcon &icon, const QString &title, bool expan
     connect(myTitle, SIGNAL(activated()), this, SLOT(fold()));
 
     QHBoxLayout *hbl = new QHBoxLayout();
-    hbl->setMargin(2);
+    hbl->setContentsMargins(2, 2, 2, 2);
     setLayout(hbl);
 
     hbl->addWidget(myTitle);

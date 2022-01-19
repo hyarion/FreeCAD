@@ -28,8 +28,8 @@
 # include <boost_bind_bind.hpp>
 # include <QAbstractItemView>
 # include <QActionEvent>
+# include <QActionGroup>
 # include <QApplication>
-# include <QDesktopWidget>
 # include <QEvent>
 # include <QMessageBox>
 # include <QTimer>

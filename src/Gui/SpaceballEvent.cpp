@@ -29,7 +29,7 @@ using namespace Spaceball;
 int MotionEvent::MotionEventType = -1;
 int ButtonEvent::ButtonEventType = -1;
 
-EventBase::EventBase(QEvent::Type event) : QInputEvent(static_cast<QEvent::Type>(event)), handled(false)
+EventBase::EventBase(QEvent::Type event) : QInputEvent(static_cast<QEvent::Type>(event), nullptr /* FIXME, this feels hacky */), handled(false)
 {
 
 }

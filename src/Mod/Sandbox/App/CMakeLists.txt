@@ -11,14 +11,10 @@ include_directories(
     ${ZLIB_INCLUDE_DIR}
 )
 
-if (BUILD_QT5)
-    include_directories(
-        ${Qt5Core_INCLUDE_DIRS}
-    )
+if(Qt6_FOUND)
+    include_directories(${Qt6Core_INCLUDE_DIRS})
 else()
-    include_directories(
-        ${QT_INCLUDE_DIR}
-    )
+    include_directories(${Qt5Core_INCLUDE_DIRS})
 endif()
 
 

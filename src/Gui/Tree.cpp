@@ -1521,7 +1521,11 @@ void TreeWidget::startDrag(Qt::DropActions supportedActions)
     }
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+QMimeData* TreeWidget::mimeData(const QList<QTreeWidgetItem*> &items) const
+#else
 QMimeData* TreeWidget::mimeData(const QList<QTreeWidgetItem*> items) const
+#endif
 {
 #if 0
     // all selected items must reference an object from the same document
@@ -3071,7 +3075,7 @@ TreePanel::TreePanel(const char* name, QWidget* parent)
 
     QVBoxLayout* pLayout = new QVBoxLayout(this);
     pLayout->setSpacing(0);
-    pLayout->setMargin(0);
+    pLayout->setContentsMargins(0, 0, 0, 0);
     pLayout->addWidget(this->treeWidget);
     connect(this->treeWidget, SIGNAL(emitSearchObjects()),
         this, SLOT(showEditor()));
@@ -3159,7 +3163,7 @@ TreeDockWidget::TreeDockWidget(Gui::Document* pcDocument, QWidget* parent)
     auto panel = new TreePanel("TreeView", this);
     QGridLayout* pLayout = new QGridLayout(this);
     pLayout->setSpacing(0);
-    pLayout->setMargin(0);
+    pLayout->setContentsMargins(0, 0, 0, 0);
     pLayout->addWidget(panel, 0, 0);
 }
 

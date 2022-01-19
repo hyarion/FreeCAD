@@ -558,10 +558,11 @@ IconFolders::IconFolders(const QStringList& paths, QWidget* parent)
     int numPaths = static_cast<int>(paths.size());
     int maxRow = this->maxLines;
     for (int row=0; row<maxRow; row++) {
-        QLineEdit* edit = new QLineEdit(this);
+        QLineEdit* edit;
+        QPushButton* removeButton;
+        QPair<QLineEdit*, QPushButton*> pair(edit = new QLineEdit(this), removeButton = new QPushButton(this));
         edit->setReadOnly(true);
         gridLayout->addWidget(edit, row, 0, 1, 1);
-        QPushButton* removeButton = new QPushButton(this);
         removeButton->setIcon(BitmapFactory().iconFromTheme("list-remove"));
         gridLayout->addWidget(removeButton, row, 1, 1, 1);
 
@@ -573,7 +574,7 @@ IconFolders::IconFolders(const QStringList& paths, QWidget* parent)
             removeButton->hide();
         }
 
-        buttonMap.append(qMakePair<QLineEdit*, QPushButton*>(edit, removeButton));
+        buttonMap.append(pair);
         connect(removeButton, SIGNAL(clicked()), this, SLOT(removeFolder()));
     }
 

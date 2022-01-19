@@ -271,9 +271,7 @@ namespace Gui {
             Document* doc = Application::Instance->activeDocument();
             QFont font;
             font.setBold(doc==&d);
-            QVariant variant;
-            variant.setValue<QFont>(font);
-            return variant;
+            return QVariant::fromValue(font);
         }
 
         return QVariant();
@@ -328,9 +326,7 @@ namespace Gui {
             App::DocumentObject* act = obj->getDocument()->getActiveObject();
             QFont font;
             font.setBold(obj==act);
-            QVariant variant;
-            variant.setValue<QFont>(font);
-            return variant;
+            return QVariant::fromValue(font);
         }
 
         return QVariant();

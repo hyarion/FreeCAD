@@ -380,9 +380,6 @@ public:
 
         if (samples > 1) {
             glformat = true;
-#if !defined(HAVE_QT5_OPENGL)
-            f.setSampleBuffers(true);
-#endif
             f.setSamples(samples);
         }
         else if (samples > 0) {
@@ -406,7 +403,7 @@ public:
 
         QFrame* vbox = new QFrame(this);
         QVBoxLayout* layout = new QVBoxLayout();
-        layout->setMargin(0);
+        layout->setContentsMargins(0,0,0,0);
         layout->setSpacing(0);
         vbox->setLayout(layout);
 

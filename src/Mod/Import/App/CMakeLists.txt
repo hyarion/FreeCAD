@@ -1,3 +1,11 @@
+
+#message(STATUS "============================")
+#get_cmake_property(_variableNames VARIABLES)
+#list (SORT _variableNames)
+#foreach (_variableName ${_variableNames})
+#    message(STATUS "${_variableName}=${${_variableName}}")
+#endforeach()
+#message(STATUS "============================")
 if(MSVC)
     add_definitions(-DFCAppImport -DHAVE_ACOSH -DHAVE_ASINH -DHAVE_ATANH)
 else(MSVC)
@@ -13,6 +21,8 @@ include_directories(
     ${ZLIB_INCLUDE_DIR}
     ${PYTHON_INCLUDE_DIRS}
     ${XercesC_INCLUDE_DIRS}
+    ${TBB_INCLUDE_DIRS}
+    ${TBB_DIR}/../../../include
 )
 
 link_directories(${OCC_LIBRARY_DIR})

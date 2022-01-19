@@ -18,17 +18,12 @@ set(Points_LIBS
     FreeCADApp
 )
 
-if (BUILD_QT5)
-    include_directories(
-        ${Qt5Concurrent_INCLUDE_DIRS}
-    )
-    list(APPEND Points_LIBS
-        ${Qt5Concurrent_LIBRARIES}
-    )
+if(Qt6_FOUND)
+    include_directories(${Qt6Concurrent_INCLUDE_DIRS})
+    list(APPEND Points_LIBS ${Qt6Concurrent_LIBRARIES})
 else()
-    include_directories(
-        ${QT_QTCORE_INCLUDE_DIR}
-    )
+    include_directories(${Qt5Concurrent_INCLUDE_DIRS})
+    list(APPEND Points_LIBS ${Qt5Concurrent_LIBRARIES})
 endif()
 
 generate_from_xml(PointsPy)

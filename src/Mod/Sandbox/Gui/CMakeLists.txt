@@ -15,14 +15,10 @@ include_directories(
     ${XercesC_INCLUDE_DIRS}
 )
 
-if(BUILD_QT5)
-    include_directories(
-        ${Qt5Core_INCLUDE_DIRS}
-    )
+if(Qt6_FOUND)
+    include_directories(${Qt6Core_INCLUDE_DIRS})
 else()
-    include_directories(
-        ${QT_INCLUDE_DIR}
-    )
+    include_directories(${Qt5Core_INCLUDE_DIRS})
 endif()
 
 link_directories(${OCC_LIBRARY_DIR})
@@ -40,10 +36,10 @@ set(SandboxGui_MOC_HDRS
 fc_wrap_cpp(SandboxGui_MOC_SRCS ${SandboxGui_MOC_HDRS})
 SOURCE_GROUP("Moc" FILES ${SandboxGui_MOC_SRCS})
 
-if(BUILD_QT5)
-    qt5_add_resources(Resource_SRCS Resources/Sandbox.qrc)
+if(Qt6_FOUND)
+    qt6_add_resources(Resource_SRCS Resources/Sandbox.qrc)
 else()
-    qt4_add_resources(Resource_SRCS Resources/Sandbox.qrc)
+    qt5_add_resources(Resource_SRCS Resources/Sandbox.qrc)
 endif()
 SET(Resource_SRCS
     ${Resource_SRCS}

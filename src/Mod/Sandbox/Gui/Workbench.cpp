@@ -61,7 +61,7 @@ Workbench::Workbench()
 
     QGridLayout* pLayout = new QGridLayout(tree); 
     pLayout->setSpacing(0);
-    pLayout->setMargin (0);
+    pLayout->setContentsMargins(0, 0, 0, 0);
     pLayout->addWidget(treeWidget, 0, 0);
 
     tree->setObjectName
@@ -156,12 +156,7 @@ SoWidgetShape::SoWidgetShape()
 
 void SoWidgetShape::GLRender(SoGLRenderAction * /*action*/)
 {
-#if defined(HAVE_QT5_OPENGL)
     this->image = QPixmap::grabWidget(w, w->rect()).toImage();
-#else
-    this->image = QPixmap::grabWidget(w, w->rect()).toImage();
-    this->image = QtGLWidget::convertToGLFormat(this->image);
-#endif
     glRasterPos2d(10,10);
     glDrawPixels(this->image.width(),this->image.height(),GL_RGBA,GL_UNSIGNED_BYTE,this->image.bits());
 }
@@ -281,9 +276,4 @@ void SoWidgetShape::setWidget(QWidget* w)
     QPixmap img(this->w->size());
     this->w->render(&img);
     this->image = img.toImage();
-
-#if !defined(HAVE_QT5_OPENGL)
-    this->image = QPixmap::grabWidget(w, w->rect()).toImage();
-    this->image = QtGLWidget::convertToGLFormat(this->image);
-#endif
 }

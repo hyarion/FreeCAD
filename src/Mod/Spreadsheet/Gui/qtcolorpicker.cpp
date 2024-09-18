@@ -4,6 +4,7 @@
 **
 ** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 ** Modified 2022 by 0penBrain under LGPL : fix issues about popup positioning
+** Modified 2024 by Hyarion under LGPL : add support for transparent colors
 **
 ** Contact:  Qt Software Information (qt-info@nokia.com)
 **
@@ -69,6 +70,50 @@
 #include <Gui/FileDialog.h>
 
 #include "qtcolorpicker.h"
+
+static void drawColorRectangle(QPainter &p, const QColor &c, int w, int h, int o, int m, const QColor &boarderColor) {
+    int hw = w / 2;
+    int hh = h / 2;
+    
+    // remaining half
+    int rhw = w - hw;
+    int rhh = h - hh;
+
+    // Draw background pattern for transparent colors
+    p.setPen(Qt::NoPen);
+    p.setBrush(Qt::lightGray);
+    p.drawRect(m, m, w - 2 * m - 1, h - 2 * m - 1);
+    p.setBrush(Qt::darkGray);
+    p.drawRect(m, m, hw - m, hh - m);  // Top left
+    p.drawRect(hw, hh, rhw - m - 1, rhh - m - 1); // Bottom right
+
+    // Draw opaque top triangle if neither opaque or totally transparent
+    bool semiTransparent = c.alpha() > 0 && c.alpha() < 255;
+    if (semiTransparent) {
+        QColor opaqueCol(c.red(), c.green(), c.blue());
+        QPolygon triangle;
+        triangle << QPoint(m, m)         // Top-left corner
+                << QPoint(w - m - 1, m)        // Top-right corner of the half-width
+                << QPoint(m, h - m - 1);       // Bottom-left corner of the half-height
+        p.setPen(Qt::NoPen);
+        p.setBrush(opaqueCol);
+        p.drawPolygon(triangle);
+    }
+
+    // Draw selected color which may be transparent
+    p.setPen(QPen(boarderColor, 1));
+    p.setBrush(c);
+    p.drawRect(m, m, w - 2 * m - 1, h - 2 * m - 1);
+
+    // Draw a diagonal line over totally transparent colors
+    bool transparent = c.alpha() == 0;
+    if (transparent) {
+        p.setPen(QPen(Qt::red, 1));
+        p.drawLine(w - 2 * m - 1, 2 * m, 2 * m, h - 2 * m - 1);
+    }
+    p.setPen(QPen(Qt::NoPen));
+    p.setBrush(Qt::NoBrush);
+}
 
 // clang-format off
 /*! \class QtColorPicker
@@ -361,9 +406,9 @@ void QtColorPicker::paintEvent(QPaintEvent *e)
 
         int w = pix.width();            // width of cell in pixels
         int h = pix.height();           // height of cell in pixels
-        p.setPen(QPen(Qt::gray));
-        p.setBrush(col);
-        p.drawRect(2, 2, w - 5, h - 5);
+
+        drawColorRectangle(p, col, w, h, 0, 0, Qt::gray);
+
         setIcon(QIcon(pix));
 
         dirty = false;
@@ -447,8 +492,8 @@ void QtColorPicker::setCurrentColor(const QColor &color)
 
     ColorPickerItem *item = popup->find(color);
     if (!item) {
-    insertColor(color, tr("Custom Color"));
-    item = popup->find(color);
+        insertColor(color, tr("Custom Color"));
+        item = popup->find(color);
     }
 
     popup->setLastSel(color);
@@ -476,9 +521,9 @@ void QtColorPicker::insertColor(const QColor &color, const QString &text, int in
 {
     popup->insertColor(color, text, index);
     if (!firstInserted) {
-    col = color;
-    setText(text);
-    firstInserted = true;
+        col = color;
+        setText(text);
+        firstInserted = true;
     }
 }
 
@@ -559,8 +604,8 @@ ColorPickerPopup::ColorPickerPopup(int width, bool withColorDialog,
 
     if (withColorDialog) {
         moreButton = new ColorPickerButton(this);
-        moreButton->setFixedWidth(24);
-        moreButton->setFixedHeight(21);
+        moreButton->setFixedWidth(22);
+        moreButton->setFixedHeight(22);
         moreButton->setFrameRect(QRect(2, 2, 20, 17));
         connect(moreButton, &ColorPickerButton::clicked, this, &ColorPickerPopup::getColorFromDialog);
     }
@@ -905,14 +950,16 @@ void ColorPickerPopup::getColorFromDialog()
 {
     //bool ok;
     //QRgb rgb = QColorDialog::getRgba(lastSel.rgba(), &ok, parentWidget());
-    QColor col;
-    if (Gui::DialogOptions::dontUseNativeColorDialog()){
-        col = QColorDialog::getColor(lastSel, parentWidget(), QString(),
-            QColorDialog::ShowAlphaChannel | QColorDialog::DontUseNativeDialog);
-    } else {
-        col = QColorDialog::getColor(lastSel, parentWidget(), QString(),
-            QColorDialog::ShowAlphaChannel);
+    bool withAlphaChannelEnabled = true; // Expose this to make it configurable
+    QColorDialog::ColorDialogOptions options;
+    if (withAlphaChannelEnabled){
+        options |= QColorDialog::ShowAlphaChannel;
     }
+    if (Gui::DialogOptions::dontUseNativeColorDialog()){
+        options |= QColorDialog::DontUseNativeDialog;
+    }
+
+    QColor col = QColorDialog::getColor(lastSel, parentWidget(), QString(), options);
     if (!col.isValid())
     return;
 
@@ -933,8 +980,8 @@ ColorPickerItem::ColorPickerItem(const QColor &color, const QString &text,
     : QFrame(parent), c(color), t(text), sel(false)
 {
     setToolTip(t);
-    setFixedWidth(24);
-    setFixedHeight(21);
+    setFixedWidth(22);
+    setFixedHeight(22);
 }
 
 /*!
@@ -1028,17 +1075,21 @@ void ColorPickerItem::paintEvent(QPaintEvent *)
     int w = width();            // width of cell in pixels
     int h = height();           // height of cell in pixels
 
+    auto boarderColor = hasFocus() ? Qt::black : Qt::gray;
+    drawColorRectangle(p, c, w-1, h-1, 1, 1, boarderColor);
+    /*
     p.setPen( QPen( Qt::gray, 0, Qt::SolidLine ) );
 
-    if (sel)
     p.drawRect(1, 1, w - 3, h - 3);
 
     p.setPen( QPen( Qt::black, 0, Qt::SolidLine ) );
     p.drawRect(3, 3, w - 7, h - 7);
     p.fillRect(QRect(4, 4, w - 8, h - 8), QBrush(c));
-
-    if (hasFocus())
-    p.drawRect(0, 0, w - 1, h - 1);
+    if (hasFocus()) {
+        p.setPen(QPen(Qt::black, 0));
+        p.drawRect(0, 0, w - 2, h - 2);
+    }
+*/
 }
 
 /*!
@@ -1152,15 +1203,13 @@ void ColorPickerButton::paintEvent(QPaintEvent *e)
 
     QPen pen(palette().buttonText(), 1);
     p.setPen(pen);
-
     p.drawRect(r.center().x() + offset - 4, r.center().y() + offset, 1, 1);
     p.drawRect(r.center().x() + offset    , r.center().y() + offset, 1, 1);
     p.drawRect(r.center().x() + offset + 4, r.center().y() + offset, 1, 1);
     if (hasFocus()) {
-    p.setPen( QPen( Qt::black, 0, Qt::SolidLine ) );
+    p.setPen( QPen( Qt::black, 1, Qt::SolidLine ) );
     p.drawRect(0, 0, width() - 1, height() - 1);
     }
-
     p.end();
 
 }

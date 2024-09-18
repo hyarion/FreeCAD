@@ -106,7 +106,7 @@ void Workbench::activated()
                 backgroundColor = new QtColorPicker(bar);
                 backgroundColor->setObjectName(QString::fromLatin1("Spreadsheet_BackgroundColor"));
                 backgroundColor->setStandardColors();
-                backgroundColor->setCurrentColor(palette.color(QPalette::Base));
+                backgroundColor->insertColor(QColor(255, 255, 255, 0), QObject::tr("None"), 0);
                 QObject::connect(backgroundColor,
                                  &QtColorPicker::colorSet,
                                  workbenchHelper.get(),
@@ -143,12 +143,13 @@ void WorkbenchHelper::setForegroundColor(const QColor& color)
                 Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Set foreground color"));
                 for (; i != ranges.end(); ++i) {
                     Gui::Command::doCommand(Gui::Command::Doc,
-                                            "App.ActiveDocument.%s.setForeground('%s', (%f,%f,%f))",
+                                            "App.ActiveDocument.%s.setForeground('%s', (%f,%f,%f,%f))",
                                             sheet->getNameInDocument(),
                                             i->rangeString().c_str(),
                                             color.redF(),
                                             color.greenF(),
-                                            color.blueF());
+                                            color.blueF(),
+                                            color.alphaF());
                 }
                 Gui::Command::commitCommand();
                 Gui::Command::doCommand(Gui::Command::Doc, "App.ActiveDocument.recompute()");
@@ -177,12 +178,13 @@ void WorkbenchHelper::setBackgroundColor(const QColor& color)
                 Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Set background color"));
                 for (; i != ranges.end(); ++i) {
                     Gui::Command::doCommand(Gui::Command::Doc,
-                                            "App.ActiveDocument.%s.setBackground('%s', (%f,%f,%f))",
+                                            "App.ActiveDocument.%s.setBackground('%s', (%f,%f,%f,%f))",
                                             sheet->getNameInDocument(),
                                             i->rangeString().c_str(),
                                             color.redF(),
                                             color.greenF(),
-                                            color.blueF());
+                                            color.blueF(),
+                                            color.alphaF());
                 }
                 Gui::Command::commitCommand();
                 Gui::Command::doCommand(Gui::Command::Doc, "App.ActiveDocument.recompute()");

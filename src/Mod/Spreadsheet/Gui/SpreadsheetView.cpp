@@ -125,8 +125,8 @@ SheetView::SheetView(Gui::Document* pcDocument, App::DocumentObject* docObj, QWi
     connect(model, &QAbstractItemModel::dataChanged, this, &SheetView::modelUpdated);
 
     QPalette palette = ui->cells->palette();
-    palette.setColor(QPalette::Base, QColor(255, 255, 255));
-    palette.setColor(QPalette::Text, QColor(0, 0, 0));
+    palette.setColor(QPalette::Base, QColor(255, 255, 255, 0));
+    palette.setColor(QPalette::Text, QColor(0, 0, 0, 255));
     ui->cells->setPalette(palette);
 
     QList<QtColorPicker*> bgList = Gui::getMainWindow()->findChildren<QtColorPicker*>(

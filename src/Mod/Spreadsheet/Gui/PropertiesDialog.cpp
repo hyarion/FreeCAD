@@ -50,6 +50,7 @@ PropertiesDialog::PropertiesDialog(Sheet* _sheet,
     ui->setupUi(this);
     ui->foregroundColor->setStandardColors();
     ui->backgroundColor->setStandardColors();
+    ui->backgroundColor->insertColor(QColor(255, 255, 255, 0), tr("None"), 0);
 
     assert(ranges.size() > 0);
     Range range = ranges[0];

@@ -908,10 +908,9 @@ void ColorPickerPopup::getColorFromDialog()
     QColor col;
     if (Gui::DialogOptions::dontUseNativeColorDialog()){
         col = QColorDialog::getColor(lastSel, parentWidget(), QString(),
-            QColorDialog::ShowAlphaChannel | QColorDialog::DontUseNativeDialog);
+            QColorDialog::DontUseNativeDialog);
     } else {
-        col = QColorDialog::getColor(lastSel, parentWidget(), QString(),
-            QColorDialog::ShowAlphaChannel);
+        col = QColorDialog::getColor(lastSel, parentWidget(), QString());
     }
     if (!col.isValid())
     return;

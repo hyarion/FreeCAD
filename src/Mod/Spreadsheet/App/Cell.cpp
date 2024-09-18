@@ -503,7 +503,7 @@ void Cell::setBackground(const App::Color& color)
         PropertySheet::AtomicPropertyChange signaller(*owner);
 
         backgroundColor = color;
-        setUsed(BACKGROUND_COLOR_SET, backgroundColor != App::Color(1, 1, 1, 0));
+        setUsed(BACKGROUND_COLOR_SET, backgroundColor != App::Color(1, 1, 1, 1));
         setDirty();
 
         signaller.tryInvoke();

@@ -46,7 +46,7 @@ public:
   explicit Keyboard(QuarterWidget* quarter);
   ~Keyboard() override;
 
-  const SoEvent * translateEvent(QEvent * event) override;
+  const SoEvent * translateEvent(QEvent * event, bool & isDone) override;
 
 private:
   friend class KeyboardP;

@@ -53,7 +53,7 @@ public:
     Subclasses must override this method to provide custom event
     handling
   */
-  virtual const SoEvent * translateEvent(QEvent * event) = 0;
+  virtual const SoEvent * translateEvent(QEvent * event, bool & isDone) = 0;
 
   void setMousePosition(const SbVec2s & pos);
   void setWindowSize(const SbVec2s & size);

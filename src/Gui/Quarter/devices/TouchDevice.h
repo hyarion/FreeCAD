@@ -1,5 +1,8 @@
+#ifndef QUARTER_TOUCHDEVICE_H
+#define QUARTER_TOUCHDEVICE_H
+
 /**************************************************************************\
- * Copyright (c) Kongsberg Oil & Gas Technologies AS
+ * Copyright (c) Benjamin Nauck
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -30,53 +33,27 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 \**************************************************************************/
 
-/*!
-  \class SIM::Coin3D::Quarter::Keyboard Keyboard.h Quarter/devices/Keyboard.h
+#include "InputDevice.h"
 
-  \brief The Keyboard class provides translation of keyboard events on
-  the QuarterWidget.
-*/
+class SoEvent;
+class QEvent;
 
-#ifdef _MSC_VER
-#pragma warning(disable : 4267)
-#endif
+namespace SIM { namespace Coin3D { namespace Quarter {
 
-#include <QEvent>
-#include <QKeyEvent>
-#include <Inventor/events/SoEvent.h>
+class TouchDeviceP;
 
-#include "KeyboardP.h"
-#include "devices/Keyboard.h"
+class QUARTER_DLL_API TouchDevice : public InputDevice {
+ public:
+  explicit TouchDevice(QuarterWidget* quarter);
+  ~TouchDevice() override;
+  const SoEvent * translateEvent(QEvent * event, bool & isDone) override;
 
+ private:
+  QEvent * eventCache; // to know when we're done handling an event
+  QList<QTouchEvent::TouchPoint> touchPoints; // to know when we're done handling an event
+  class TouchDeviceP * pimpl;
+  friend class TouchDeviceP;
+};
 
-using namespace SIM::Coin3D::Quarter;
-
-#define PRIVATE(obj) obj->pimpl
-
-Keyboard::Keyboard(QuarterWidget* quarter) :
-  InputDevice(quarter)
-{
-  PRIVATE(this) = new KeyboardP(this);
-}
-
-Keyboard::~Keyboard()
-{
-  delete PRIVATE(this);
-}
-
-/*! Translates from QKeyEvents to SoKeyboardEvents
- */
-const SoEvent *
-Keyboard::translateEvent(QEvent * event, bool & isDone)
-{
-  isDone = true;
-  switch (event->type()) {
-  case QEvent::KeyPress:
-  case QEvent::KeyRelease:
-    return PRIVATE(this)->keyEvent((QKeyEvent *) event);
-  default:
-    return nullptr;
-  }
-}
-
-#undef PRIVATE
+}}}
+#endif // !QUARTER_TOUCHDEVICE_H

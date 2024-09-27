@@ -44,7 +44,7 @@ class QUARTER_DLL_API SpaceNavigatorDevice : public InputDevice {
  public:
   explicit SpaceNavigatorDevice(QuarterWidget* quarter);
   ~SpaceNavigatorDevice() override;
-  const SoEvent * translateEvent(QEvent * event) override;
+  const SoEvent * translateEvent(QEvent * event, bool & isDone) override;
 
  private:
   class SpaceNavigatorDeviceP * pimpl;

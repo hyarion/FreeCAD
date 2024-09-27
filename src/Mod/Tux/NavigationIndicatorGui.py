@@ -648,6 +648,11 @@ a4.setText("MayaGesture  ")
 a4.setData("Gui::MayaGestureNavigationStyle")
 a4.setObjectName("Indicator_NavigationMayaGesture")
 
+a4 = QtGui.QAction(gStyle)
+a4.setText("MultiTouch  ")
+a4.setData("Gui::MultiTouchNavigationStyle")
+a4.setObjectName("Indicator_NavigationMultiTouch")
+
 a5 = QtGui.QAction(gStyle)
 a5.setText("OpenCascade  ")
 a5.setData("Gui::OpenCascadeNavigationStyle")

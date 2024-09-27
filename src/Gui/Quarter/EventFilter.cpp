@@ -163,10 +163,15 @@ EventFilter::eventFilter(QObject * obj, QEvent * qevent)
   // translate QEvent into SoEvent and see if it is handled by scene
   // graph
   Q_FOREACH(InputDevice * device, PRIVATE(this)->devices) {
-    const SoEvent * soevent = device->translateEvent(qevent);
-    if (soevent && PRIVATE(this)->quarterwidget->processSoEvent(soevent)) {
-      return true;
-    }
+    bool isDone = false;
+    do {
+      const SoEvent * soevent = device->translateEvent(qevent, isDone);
+      if (soevent && PRIVATE(this)->quarterwidget->processSoEvent(soevent)) {
+        if (isDone) {
+          return true;
+        }
+      }
+    } while (isDone);
   }
   return false;
 }

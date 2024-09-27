@@ -105,10 +105,11 @@ SpaceNavigatorDevice::~SpaceNavigatorDevice()
 
 
 const SoEvent *
-SpaceNavigatorDevice::translateEvent(QEvent * event)
+SpaceNavigatorDevice::translateEvent(QEvent * event, bool & isDone)
 {
-  Q_UNUSED(event); 
+  Q_UNUSED(event);
   SoEvent * ret = nullptr;
+  isDone = true;
 
 #ifdef HAVE_SPACENAV_LIB
   NativeEvent * ce = dynamic_cast<NativeEvent *>(event);

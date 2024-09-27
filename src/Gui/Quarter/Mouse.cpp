@@ -106,8 +106,9 @@ Mouse::~Mouse()
   SoMouseButtonEvents
  */
 const SoEvent *
-Mouse::translateEvent(QEvent * event)
+Mouse::translateEvent(QEvent * event, bool & isDone)
 {
+  isDone = true;
   switch (event->type()) {
   case QEvent::MouseMove:
     return PRIVATE(this)->mouseMoveEvent((QMouseEvent *) event);

@@ -1,5 +1,5 @@
 /**************************************************************************\
- * Copyright (c) Kongsberg Oil & Gas Technologies AS
+ * Copyright (c) Benjamin Nauck
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -30,50 +30,92 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 \**************************************************************************/
 
-/*!
-  \class SIM::Coin3D::Quarter::Keyboard Keyboard.h Quarter/devices/Keyboard.h
-
-  \brief The Keyboard class provides translation of keyboard events on
-  the QuarterWidget.
-*/
-
 #ifdef _MSC_VER
 #pragma warning(disable : 4267)
 #endif
 
 #include <QEvent>
 #include <QKeyEvent>
-#include <Inventor/events/SoEvent.h>
+#include <Inventor/events/SoTouchEvent.h>
 
-#include "KeyboardP.h"
-#include "devices/Keyboard.h"
+#include "devices/TouchDevice.h"
 
+
+namespace SIM { namespace Coin3D { namespace Quarter {
+
+class TouchDeviceP {
+public:
+  explicit TouchDeviceP(TouchDevice * publ) {
+    this->publ = publ;
+    this->touch = new SoTouchEvent();
+  }
+
+  ~TouchDeviceP() {
+    delete this->touch;
+  }
+
+  const SoTouchEvent * touchEvent(QTouchEvent * event, bool & isDone);
+
+  SoTouchEvent * touch;
+
+  TouchDevice * publ;
+};
+}}}
 
 using namespace SIM::Coin3D::Quarter;
 
 #define PRIVATE(obj) obj->pimpl
+#define PUBLIC(obj) obj->publ
 
-Keyboard::Keyboard(QuarterWidget* quarter) :
-  InputDevice(quarter)
+const SoTouchEvent *
+TouchDeviceP::touchEvent(QTouchEvent * event, bool & isDone)
 {
-  PRIVATE(this) = new KeyboardP(this);
+  PUBLIC(this)->setModifiers(this->touch, event);
+
+  if (event != this->cachedEvent) {
+    this->touchPoints = QList<QTouchEvent::TouchPoint>(event->points());
+    if (this->touchPoints.empty()) {
+      isDone = true;
+      return nullptr;
+    }
+  }
+  
+  QTouchEvent::TouchPoint touchPoint(this->touchPoints.pop());
+  isDone = this->touchPoints.empty();
+
+  this->touch->setFingerId(event->id());
+
+  QPointF & position(event->position());
+  this->touch->setPosition(SbVec2f(position.x(), position.y()));
+
+  QPointF & speed(event->velocity());
+  this->touch->setSpeed(SbVec2f(speed.x(), speed.y()));
+
+  return this->touch;
 }
 
-Keyboard::~Keyboard()
+TouchDevice::TouchDevice(QuarterWidget* quarter) :
+  InputDevice(quarter)
+{
+  PRIVATE(this) = new TouchDeviceP(this);
+}
+
+TouchDevice::~TouchDevice()
 {
   delete PRIVATE(this);
 }
 
-/*! Translates from QKeyEvents to SoKeyboardEvents
+/*! Translates from QKeyEvents to SoTouchDeviceEvents
  */
 const SoEvent *
-Keyboard::translateEvent(QEvent * event, bool & isDone)
+TouchDevice::translateEvent(QEvent * event, bool & isDone)
 {
-  isDone = true;
   switch (event->type()) {
-  case QEvent::KeyPress:
-  case QEvent::KeyRelease:
-    return PRIVATE(this)->keyEvent((QKeyEvent *) event);
+  case QEvent::TouchBegin:
+  case QEvent::TouchCancel:
+  case QEvent::TouchEnd:
+  case QEvent::TouchUpdate:
+    return PRIVATE(this)->touchEvent((QTouchEvent *) event, isDone);
   default:
     return nullptr;
   }

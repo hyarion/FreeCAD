@@ -358,6 +358,12 @@ double Measurement::length() const
 
                 //  Get the length of one edge
                 TopoDS_Shape shape = getShape(*obj, (*subEl).c_str());
+                try {
+                    TopoDS::Edge(shape);
+                } catch (const Standard_TypeMismatch& e) {
+                   Base::Console().Error("Standard_TypeMismatch is caught here!\n");
+                }
+                // throw new Base::RuntimeError("This isn't caught in GuiApplication either");
                 const TopoDS_Edge& edge = TopoDS::Edge(shape);
                 BRepAdaptor_Curve curve(edge);
 

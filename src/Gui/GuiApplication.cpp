@@ -48,6 +48,8 @@
 #include <Base/Console.h>
 #include <Base/Exception.h>
 
+#include <Standard_TypeMismatch.hxx>
+
 #include "GuiApplication.h"
 #include "Application.h"
 #include "MainWindow.h"
@@ -81,6 +83,10 @@ bool GUIApplication::notify (QObject * receiver, QEvent * event)
             return processSpaceballEvent(receiver, event);
         else
             return QApplication::notify(receiver, event);
+    }
+    catch (const Standard_TypeMismatch& e) {
+        // Standard_TypeMismatch doesn't get caught here!
+        Base::Console().Error("Standard_TypeMismatch in GUIApplication::notify.!\n");
     }
     catch (const Base::SystemExitException &e) {
         caughtException.reset(new Base::SystemExitException(e));

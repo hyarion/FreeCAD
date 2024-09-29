@@ -118,7 +118,7 @@ public:
     explicit GesturesDevice(QWidget* widget);//it needs to know the widget to do coordinate translation
 
     ~GesturesDevice() override = default;
-    const SoEvent* translateEvent(QEvent* event) override;
+    const SoEvent* translateEvent(QEvent* event, bool & isDone) override;
 protected:
     QWidget* widget;
 };

@@ -57,6 +57,8 @@ public:
   const SoTouchEvent * touchEvent(QTouchEvent * event, bool & isDone);
 
   SoTouchEvent * touch;
+  QEvent * cachedEvent; // to know when we're done handling an event
+  QList<QTouchEvent::TouchPoint> touchPoints; // to know when we're done handling an event
 
   TouchDevice * publ;
 };
@@ -73,22 +75,23 @@ TouchDeviceP::touchEvent(QTouchEvent * event, bool & isDone)
   PUBLIC(this)->setModifiers(this->touch, event);
 
   if (event != this->cachedEvent) {
-    this->touchPoints = QList<QTouchEvent::TouchPoint>(event->points());
+    this->touchPoints = QList<QTouchEvent::TouchPoint>(event->touchPoints());
     if (this->touchPoints.empty()) {
       isDone = true;
       return nullptr;
     }
   }
   
-  QTouchEvent::TouchPoint touchPoint(this->touchPoints.pop());
+  QTouchEvent::TouchPoint & touchPoint = this->touchPoints.last();
+  this->touchPoints.removeLast();
   isDone = this->touchPoints.empty();
 
-  this->touch->setFingerId(event->id());
+  this->touch->setFingerId(touchPoint.id());
 
-  QPointF & position(event->position());
+  QPointF position = touchPoint.scenePos();
   this->touch->setPosition(SbVec2f(position.x(), position.y()));
 
-  QPointF & speed(event->velocity());
+  QVector2D speed = touchPoint.velocity();
   this->touch->setSpeed(SbVec2f(speed.x(), speed.y()));
 
   return this->touch;

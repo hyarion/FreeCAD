@@ -35,17 +35,17 @@ using namespace Gui;
 
 // ----------------------------------------------------------------------------------
 
-/* TRANSLATOR Gui::BlenderNavigationStyle */
+/* TRANSLATOR Gui::MultiTouchNavigationStyle */
 
-TYPESYSTEM_SOURCE(Gui::BlenderNavigationStyle, Gui::UserNavigationStyle)
+TYPESYSTEM_SOURCE(Gui::MultiTouchNavigationStyle, Gui::UserNavigationStyle)
 
-BlenderNavigationStyle::BlenderNavigationStyle() : lockButton1(false)
+MultiTouchNavigationStyle::MultiTouchNavigationStyle() : lockButton1(false)
 {
 }
 
-BlenderNavigationStyle::~BlenderNavigationStyle() = default;
+MultiTouchNavigationStyle::~MultiTouchNavigationStyle() = default;
 
-const char* BlenderNavigationStyle::mouseButtons(ViewerMode mode)
+const char* MultiTouchNavigationStyle::mouseButtons(ViewerMode mode)
 {
     switch (mode) {
     case NavigationStyle::SELECTION:
@@ -61,7 +61,7 @@ const char* BlenderNavigationStyle::mouseButtons(ViewerMode mode)
     }
 }
 
-SbBool BlenderNavigationStyle::processSoEvent(const SoEvent * const ev)
+SbBool MultiTouchNavigationStyle::processSoEvent(const SoEvent * const ev)
 {
     // Events when in "ready-to-seek" mode are ignored, except those
     // which influence the seek mode itself -- these are handled further

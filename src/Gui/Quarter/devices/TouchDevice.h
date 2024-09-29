@@ -49,8 +49,6 @@ class QUARTER_DLL_API TouchDevice : public InputDevice {
   const SoEvent * translateEvent(QEvent * event, bool & isDone) override;
 
  private:
-  QEvent * eventCache; // to know when we're done handling an event
-  QList<QTouchEvent::TouchPoint> touchPoints; // to know when we're done handling an event
   class TouchDeviceP * pimpl;
   friend class TouchDeviceP;
 };

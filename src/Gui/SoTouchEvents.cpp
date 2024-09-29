@@ -177,8 +177,9 @@ GesturesDevice::GesturesDevice(QWidget* widget)
     this->widget = widget;
 }
 
-const SoEvent* GesturesDevice::translateEvent(QEvent* event)
+const SoEvent* GesturesDevice::translateEvent(QEvent* event, bool & isDone)
 {
+    isDone = true;
     if (event->type() == QEvent::Gesture
             || event->type() == QEvent::GestureOverride) {
         auto gevent = static_cast<QGestureEvent*>(event);

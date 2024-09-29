@@ -269,8 +269,8 @@ class SpaceNavigatorDevice : public Quarter::InputDevice {
 public:
     SpaceNavigatorDevice() : InputDevice(nullptr) {}
     ~SpaceNavigatorDevice() override = default;
-    const SoEvent* translateEvent(QEvent* event) override {
-
+    const SoEvent* translateEvent(QEvent* event, bool & isDone) override {
+        isDone = true;
         if (event->type() == Spaceball::MotionEvent::MotionEventType) {
             auto motionEvent = static_cast<Spaceball::MotionEvent*>(event);  // NOLINT
             if (!motionEvent) {

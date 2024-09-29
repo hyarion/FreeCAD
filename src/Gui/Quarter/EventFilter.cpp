@@ -162,18 +162,17 @@ EventFilter::eventFilter(QObject * obj, QEvent * qevent)
 
   // translate QEvent into SoEvent and see if it is handled by scene
   // graph
+  bool didStuff = false;
   Q_FOREACH(InputDevice * device, PRIVATE(this)->devices) {
     bool isDone = false;
     do {
       const SoEvent * soevent = device->translateEvent(qevent, isDone);
       if (soevent && PRIVATE(this)->quarterwidget->processSoEvent(soevent)) {
-        if (isDone) {
-          return true;
-        }
+        didStuff = true;
       }
-    } while (isDone);
+    } while (!isDone);
   }
-  return false;
+  return didStuff;
 }
 
 /*!

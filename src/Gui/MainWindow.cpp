@@ -81,6 +81,7 @@
 #include <DAGView/DAGView.h>
 #include <TaskView/TaskView.h>
 
+#include "GUIApplication.h"
 #include "MainWindow.h"
 #include "Action.h"
 #include "Assistant.h"
@@ -2160,14 +2161,17 @@ QPixmap MainWindow::splashImage() const
  */
 void MainWindow::dropEvent (QDropEvent* e)
 {
-    const QMimeData* data = e->mimeData();
-    if (data->hasUrls()) {
-        // load the files into the active document if there is one, otherwise let create one
-        loadUrls(App::GetApplication().getActiveDocument(), data->urls());
-    }
-    else {
-        QMainWindow::dropEvent(e);
-    }
+    GUIApplication::TryAndReport([&]{
+        const QMimeData* data = e->mimeData();
+        if (data->hasUrls()) {
+            // load the files into the active document if there is one, otherwise let create one
+            loadUrls(App::GetApplication().getActiveDocument(), data->urls());
+        }
+        else {
+            QMainWindow::dropEvent(e);
+        }
+        return true;
+    });
 }
 
 void MainWindow::dragEnterEvent (QDragEnterEvent * e)

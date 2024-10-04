@@ -50,6 +50,9 @@ public:
      */
     bool notify (QObject * receiver, QEvent * event) override;
 
+    // Exception handling for Qt-events
+    static void TryAndReport(std::function<void()> func);
+
     /// Pointer to exceptions caught in Qt event handler
     std::shared_ptr<Base::SystemExitException> caughtException;
 

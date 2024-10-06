@@ -55,6 +55,7 @@
 #include "ui_AboutApplication.h"
 #include "MainWindow.h"
 
+#include <Gui/GuiApplication.h>
 
 using namespace Gui;
 using namespace Gui::Dialog;
@@ -299,8 +300,7 @@ AboutDialog::AboutDialog(QWidget* parent)
 {
     setModal(true);
     ui->setupUi(this);
-    connect(ui->copyButton, &QPushButton::clicked,
-            this, &AboutDialog::copyToClipboard);
+    GUIApplication::SafeConnect(ui->copyButton, &QPushButton::clicked, this, &AboutDialog::copyToClipboard);
 
     // remove the automatic help button in dialog title since we don't use it
     setWindowFlag(Qt::WindowContextHelpButtonHint, false);

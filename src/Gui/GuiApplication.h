@@ -52,6 +52,19 @@ public:
 
     // Exception handling for Qt-events
     static void TryAndReport(std::function<void()> func);
+    template<typename Sender, typename Signal, typename Receiver, typename Slot>
+    static void SafeConnect(Sender sender, Signal signal, Receiver receiver, Slot slot) {
+        auto safeSlotWrapper = [slot, receiver](auto&&... args) {
+            GUIApplication::TryAndReport([=]() {
+                if constexpr (std::is_invocable_v<Slot, Receiver>) {
+                    std::mem_fn(slot)(receiver);
+                } else {
+                    std::mem_fn(slot)(receiver, std::forward<decltype(args)>(args)...);
+                }
+            });
+        };
+        QObject::connect(sender, signal, receiver, safeSlotWrapper);
+    }
 
     /// Pointer to exceptions caught in Qt event handler
     std::shared_ptr<Base::SystemExitException> caughtException;

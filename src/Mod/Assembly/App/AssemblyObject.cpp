@@ -1711,7 +1711,9 @@ std::vector<App::DocumentObject*> AssemblyObject::getUpstreamParts(App::Document
     std::string name;
     App::DocumentObject* connectingJoint = getJointOfPartConnectingToGround(part, name);
     App::DocumentObject* upPart =
-        getMovingPartFromRef(this, connectingJoint, name == "Reference1" ? "Reference2" : "Reference1");
+        getMovingPartFromRef(this,
+                             connectingJoint,
+                             name == "Reference1" ? "Reference2" : "Reference1");
 
     std::vector<App::DocumentObject*> upstreamParts = getUpstreamParts(upPart, limit);
     upstreamParts.push_back(part);

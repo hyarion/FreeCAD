@@ -668,8 +668,8 @@ App::DocumentObject* getLinkedObjFromRef(App::DocumentObject* joint, const char*
     return nullptr;
 }
 
-App::DocumentObject* getMovingPartFromRef(AssemblyObject* assemblyObject, App::DocumentObject* obj,
-                                          std::string& sub)
+App::DocumentObject*
+getMovingPartFromRef(AssemblyObject* assemblyObject, App::DocumentObject* obj, std::string& sub)
 {
     if (!obj) {
         return nullptr;
@@ -723,7 +723,8 @@ App::DocumentObject* getMovingPartFromRef(AssemblyObject* assemblyObject, App::D
     return nullptr;
 }
 
-App::DocumentObject* getMovingPartFromRef(AssemblyObject* assemblyObject, App::PropertyXLinkSub* prop)
+App::DocumentObject* getMovingPartFromRef(AssemblyObject* assemblyObject,
+                                          App::PropertyXLinkSub* prop)
 {
     if (!prop) {
         return nullptr;
@@ -742,8 +743,8 @@ App::DocumentObject* getMovingPartFromRef(AssemblyObject* assemblyObject, App::P
     return getMovingPartFromRef(assemblyObject, obj, subs[0]);
 }
 
-App::DocumentObject* getMovingPartFromRef(AssemblyObject* assemblyObject, App::DocumentObject* joint,
-                                                          const char* pName)
+App::DocumentObject*
+getMovingPartFromRef(AssemblyObject* assemblyObject, App::DocumentObject* joint, const char* pName)
 {
     if (!joint) {
         return nullptr;

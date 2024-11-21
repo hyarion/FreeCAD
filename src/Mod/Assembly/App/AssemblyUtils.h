@@ -118,12 +118,10 @@ class JointGroup;
 
 AssemblyExport void swapJCS(App::DocumentObject* joint);
 
-AssemblyExport bool isEdgeType(App::DocumentObject* obj,
-                               std::string& elName,
-                               GeomAbs_CurveType type);
-AssemblyExport bool isFaceType(App::DocumentObject* obj,
-                               std::string& elName,
-                               GeomAbs_SurfaceType type);
+AssemblyExport bool
+isEdgeType(App::DocumentObject* obj, std::string& elName, GeomAbs_CurveType type);
+AssemblyExport bool
+isFaceType(App::DocumentObject* obj, std::string& elName, GeomAbs_SurfaceType type);
 AssemblyExport double getFaceRadius(App::DocumentObject* obj, std::string& elName);
 AssemblyExport double getEdgeRadius(App::DocumentObject* obj, std::string& elName);
 
@@ -145,14 +143,12 @@ AssemblyExport App::DocumentObject* getObjFromRef(App::PropertyXLinkSub* prop);
 AssemblyExport App::DocumentObject* getObjFromRef(App::DocumentObject* joint, const char* propName);
 AssemblyExport App::DocumentObject* getLinkedObjFromRef(App::DocumentObject* joint,
                                                         const char* propName);
-AssemblyExport App::DocumentObject* getMovingPartFromRef(AssemblyObject* assemblyObject,
-                                                         App::DocumentObject* obj,
-                                                         std::string& sub);
+AssemblyExport App::DocumentObject*
+getMovingPartFromRef(AssemblyObject* assemblyObject, App::DocumentObject* obj, std::string& sub);
 AssemblyExport App::DocumentObject* getMovingPartFromRef(AssemblyObject* assemblyObject,
                                                          App::PropertyXLinkSub* prop);
-AssemblyExport App::DocumentObject* getMovingPartFromRef(AssemblyObject* assemblyObject,
-                                                         App::DocumentObject* joint,
-                                                         const char* pName);
+AssemblyExport App::DocumentObject*
+getMovingPartFromRef(AssemblyObject* assemblyObject, App::DocumentObject* joint, const char* pName);
 AssemblyExport std::vector<std::string> getSubAsList(App::PropertyXLinkSub* prop);
 AssemblyExport std::vector<std::string> getSubAsList(App::DocumentObject* joint,
                                                      const char* propName);

@@ -1040,195 +1040,222 @@ std::shared_ptr<ASMTJoint> AssemblyObject::makeMbdJointOfType(App::DocumentObjec
     return nullptr;
 }
 
-std::shared_ptr<ASMTJoint> AssemblyObject::makeMbdJointDistance(App::DocumentObject* joint)
-{
-    DistanceType type = getDistanceType(joint);
+namespace {
+template <typename JointType>
+std::shared_ptr<JointType> createJoint() {
+    static_assert(std::is_base_of_v<ASMTJoint, JointType>, "JointType must derive from ASMTJoint.");
+    return CREATE<JointType>::With();
+}
 
-    std::string elt1 = getElementFromProp(joint, "Reference1");
-    std::string elt2 = getElementFromProp(joint, "Reference2");
-    auto* obj1 = getLinkedObjFromRef(joint, "Reference1");
-    auto* obj2 = getLinkedObjFromRef(joint, "Reference2");
+template <typename JointType>
+std::shared_ptr<ASMTJoint> createJoint(double propertyValue) {
+    static_assert(std::is_base_of_v<ASMTJoint, JointType>, "JointType must derive from ASMTJoint.");
+    auto joint = CREATE<JointType>::With();
 
-    if (type == DistanceType::PointPoint) {
-        // Point to point distance, or ball joint if distance=0.
-        double distance = getJointDistance(joint);
-        if (distance < Precision::Confusion()) {
-            return CREATE<ASMTSphericalJoint>::With();
-        }
-        auto mbdJoint = CREATE<ASMTSphSphJoint>::With();
-        mbdJoint->distanceIJ = distance;
-        return mbdJoint;
-    }
-
-    // Edge - edge cases
-    else if (type == DistanceType::LineLine) {
-        auto mbdJoint = CREATE<ASMTRevCylJoint>::With();
-        mbdJoint->distanceIJ = getJointDistance(joint);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::LineCircle) {
-        auto mbdJoint = CREATE<ASMTRevCylJoint>::With();
-        mbdJoint->distanceIJ = getJointDistance(joint) + getEdgeRadius(obj2, elt2);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::CircleCircle) {
-        auto mbdJoint = CREATE<ASMTRevCylJoint>::With();
-        mbdJoint->distanceIJ =
-            getJointDistance(joint) + getEdgeRadius(obj1, elt1) + getEdgeRadius(obj2, elt2);
-        return mbdJoint;
-    }
-    // TODO : other cases od edge-edge : Ellipse, parabola, hyperbola...
-
-    // Face - Face cases
-    else if (type == DistanceType::PlanePlane) {
-        auto mbdJoint = CREATE<ASMTPlanarJoint>::With();
-        mbdJoint->offset = getJointDistance(joint);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::PlaneCylinder) {
-        auto mbdJoint = CREATE<ASMTLineInPlaneJoint>::With();
-        mbdJoint->offset = getJointDistance(joint) + getFaceRadius(obj2, elt2);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::PlaneSphere) {
-        auto mbdJoint = CREATE<ASMTPointInPlaneJoint>::With();
-        mbdJoint->offset = getJointDistance(joint) + getFaceRadius(obj2, elt2);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::PlaneCone) {
-        // TODO
-    }
-    else if (type == DistanceType::PlaneTorus) {
-        auto mbdJoint = CREATE<ASMTPlanarJoint>::With();
-        mbdJoint->offset = getJointDistance(joint);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::CylinderCylinder) {
-        auto mbdJoint = CREATE<ASMTRevCylJoint>::With();
-        mbdJoint->distanceIJ =
-            getJointDistance(joint) + getFaceRadius(obj1, elt1) + getFaceRadius(obj2, elt2);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::CylinderSphere) {
-        auto mbdJoint = CREATE<ASMTCylSphJoint>::With();
-        mbdJoint->distanceIJ =
-            getJointDistance(joint) + getFaceRadius(obj1, elt1) + getFaceRadius(obj2, elt2);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::CylinderCone) {
-        // TODO
-    }
-    else if (type == DistanceType::CylinderTorus) {
-        auto mbdJoint = CREATE<ASMTRevCylJoint>::With();
-        mbdJoint->distanceIJ =
-            getJointDistance(joint) + getFaceRadius(obj1, elt1) + getFaceRadius(obj2, elt2);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::ConeCone) {
-        // TODO
-    }
-    else if (type == DistanceType::ConeTorus) {
-        // TODO
-    }
-    else if (type == DistanceType::ConeSphere) {
-        // TODO
-    }
-    else if (type == DistanceType::TorusTorus) {
-        auto mbdJoint = CREATE<ASMTPlanarJoint>::With();
-        mbdJoint->offset = getJointDistance(joint);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::TorusSphere) {
-        auto mbdJoint = CREATE<ASMTCylSphJoint>::With();
-        mbdJoint->distanceIJ =
-            getJointDistance(joint) + getFaceRadius(obj1, elt1) + getFaceRadius(obj2, elt2);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::SphereSphere) {
-        auto mbdJoint = CREATE<ASMTSphSphJoint>::With();
-        mbdJoint->distanceIJ =
-            getJointDistance(joint) + getFaceRadius(obj1, elt1) + getFaceRadius(obj2, elt2);
-        return mbdJoint;
+    if constexpr (std::is_base_of_v<ASMTCompoundJoint, JointType>) {
+        joint->distanceIJ = propertyValue;
+    } else if constexpr (std::is_base_of_v<ASMTInPlaneJoint, JointType>) {
+        joint->offset = propertyValue;
+    } else {
+        static_assert(std::is_base_of_v<ASMTCompoundJoint, JointType> ||
+                      std::is_base_of_v<ASMTInPlaneJoint, JointType>,
+                      "JointType must have either 'distanceIJ' or 'offset' as a member.");
     }
 
-    // Point - Face cases
-    else if (type == DistanceType::PointPlane) {
-        auto mbdJoint = CREATE<ASMTPointInPlaneJoint>::With();
-        mbdJoint->offset = getJointDistance(joint);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::PointCylinder) {
-        auto mbdJoint = CREATE<ASMTCylSphJoint>::With();
-        mbdJoint->distanceIJ = getJointDistance(joint) + getFaceRadius(obj1, elt1);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::PointSphere) {
-        auto mbdJoint = CREATE<ASMTSphSphJoint>::With();
-        mbdJoint->distanceIJ = getJointDistance(joint) + getFaceRadius(obj1, elt1);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::PointCone) {
-        // TODO
-    }
-    else if (type == DistanceType::PointTorus) {
-        // TODO
-    }
+    return joint;
+}
+}
+std::shared_ptr<ASMTJoint> AssemblyObject::makeMbdJointDistance(App::DocumentObject* joint) {
+    using JointPtr = std::shared_ptr<ASMTJoint>;
 
-    // Edge - Face cases
-    else if (type == DistanceType::LinePlane) {
-        auto mbdJoint = CREATE<ASMTLineInPlaneJoint>::With();
-        mbdJoint->offset = getJointDistance(joint);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::LineCylinder) {
-        // TODO
-    }
-    else if (type == DistanceType::LineSphere) {
-        // TODO
-    }
-    else if (type == DistanceType::LineCone) {
-        // TODO
-    }
-    else if (type == DistanceType::LineTorus) {
-        // TODO
-    }
+    const double distance = getJointDistance(joint);
 
-    else if (type == DistanceType::CurvePlane) {
-        // TODO
-    }
-    else if (type == DistanceType::CurveCylinder) {
-        // TODO
-    }
-    else if (type == DistanceType::CurveSphere) {
-        // TODO
-    }
-    else if (type == DistanceType::CurveCone) {
-        // TODO
-    }
-    else if (type == DistanceType::CurveTorus) {
-        // TODO
-    }
+    std::array<std::string, 2> elts = {
+        getElementFromProp(joint, "Reference1"),
+        getElementFromProp(joint, "Reference2")
+    };
 
-    // Point - Edge cases
-    else if (type == DistanceType::PointLine) {
-        auto mbdJoint = CREATE<ASMTCylSphJoint>::With();
-        mbdJoint->distanceIJ = getJointDistance(joint);
-        return mbdJoint;
-    }
-    else if (type == DistanceType::PointCurve) {
+    std::array<App::DocumentObject*, 2> objs = {
+        getLinkedObjFromRef(joint, "Reference1"),
+        getLinkedObjFromRef(joint, "Reference2")
+    };
+
+    const auto createPointPointJoint = [&]() -> JointPtr {
+        const bool hasNoDistance = distance < Precision::Confusion();
+        return hasNoDistance ? createJoint<ASMTSphericalJoint>()
+                             : createJoint<ASMTSphSphJoint>(distance);
+    };
+
+    const auto createPointLineJoint = [&]() -> JointPtr {
+        return createJoint<ASMTCylSphJoint>(getJointDistance(joint));
+    };
+
+    const auto createPointCurveJoint = [&]() -> JointPtr {
         // For other curves we do a point in plane-of-the-curve.
         // Maybe it would be best tangent / distance to the conic?
         // For arcs and circles we could use ASMTRevSphJoint. But is it better than pointInPlane?
-        auto mbdJoint = CREATE<ASMTPointInPlaneJoint>::With();
-        mbdJoint->offset = getJointDistance(joint);
-        return mbdJoint;
-    }
+        return createJoint<ASMTPointInPlaneJoint>(getJointDistance(joint));
+    };
+
+    const auto createPointPlaneJoint = [&]() -> JointPtr {
+        return createJoint<ASMTPointInPlaneJoint>(getJointDistance(joint));
+    };
+
+    const auto createPointCylinderJoint = [&]() -> JointPtr {
+        return createJoint<ASMTCylSphJoint>(getJointDistance(joint) + getFaceRadius(objs[0], elts[0]));
+    };
+
+    const auto createPointSphereJoint = [&]() -> JointPtr {
+        return createJoint<ASMTSphSphJoint>(getJointDistance(joint) + getFaceRadius(objs[0], elts[0]));
+    };
+
+    const auto createLineLineJoint = [&]() -> JointPtr {
+        return createJoint<ASMTRevCylJoint>(getJointDistance(joint));
+    };
+
+    const auto createLineCircleJoint = [&]() -> JointPtr {
+        return createJoint<ASMTRevCylJoint>(
+            getJointDistance(joint) + getEdgeRadius(objs[1], elts[1]));
+    };
+
+    const auto createCircleCircleJoint = [&]() -> JointPtr {
+        return createJoint<ASMTRevCylJoint>(
+            getJointDistance(joint) + getEdgeRadius(objs[0], elts[0]) + getEdgeRadius(objs[1], elts[1]));
+    };
+
+    const auto createLinePlaneJoint = [&]() -> JointPtr {
+        return createJoint<ASMTLineInPlaneJoint>(getJointDistance(joint));
+    };
+
+    const auto createPlanePlaneJoint = [&]() -> JointPtr {
+        return createJoint<ASMTPlanarJoint>(getJointDistance(joint));
+    };
+
+    const auto createPlaneCylinderJoint = [&]() -> JointPtr {
+        return createJoint<ASMTLineInPlaneJoint>(getJointDistance(joint) + getFaceRadius(objs[1], elts[1]));
+    };
+
+    const auto createPlaneSphereJoint = [&]() -> JointPtr {
+        return createJoint<ASMTPointInPlaneJoint>(getJointDistance(joint) + getFaceRadius(objs[1], elts[1]));
+    };
+
+    const auto createPlaneTorusJoint = [&]() -> JointPtr {
+        return createJoint<ASMTPlanarJoint>(getJointDistance(joint));
+    };
+
+    const auto createCylinderCylinderJoint = [&]() -> JointPtr {
+        return createJoint<ASMTRevCylJoint>(
+            getJointDistance(joint) + getFaceRadius(objs[0], elts[0]) + getFaceRadius(objs[1], elts[1])
+        );
+    };
+
+    const auto createCylinderSphereJoint = [&]() -> JointPtr {
+        return createJoint<ASMTCylSphJoint>(
+            getJointDistance(joint) + getFaceRadius(objs[0], elts[0]) + getFaceRadius(objs[1], elts[1])
+        );
+    };
+
+    const auto createCylinderTorusJoint = [&]() -> JointPtr {
+        return createJoint<ASMTRevCylJoint>(
+            getJointDistance(joint) + getFaceRadius(objs[0], elts[0]) + getFaceRadius(objs[1], elts[1]));
+    };
+
+    const auto createTorusTorusJoint = [&]() -> JointPtr {
+        return createJoint<ASMTPlanarJoint>(getJointDistance(joint));
+    };
+
+    const auto createTorusSphereJoint = [&]() -> JointPtr {
+        return createJoint<ASMTCylSphJoint>(
+            getJointDistance(joint) + getFaceRadius(objs[0], elts[0]) + getFaceRadius(objs[1], elts[1]));
+    };
+
+    const auto createSphereSphereJoint = [&]() -> JointPtr {
+        return createJoint<ASMTSphSphJoint>(
+            getJointDistance(joint) + getFaceRadius(objs[0], elts[0]) + getFaceRadius(objs[1], elts[1]));
+    };
 
 
-    // by default we make a planar joint.
-    auto mbdJoint = CREATE<ASMTPlanarJoint>::With();
-    mbdJoint->offset = getJointDistance(joint);
-    return mbdJoint;
+    const auto placeholder = [&]() -> JointPtr {
+        // TODO: Replace these with real implementations
+        return createJoint<ASMTPlanarJoint>();
+    };
+
+    // Define handler map for different DistanceTypes
+    const static std::map<DistanceType, std::function<JointPtr()>> handlers = {
+        // Point cases
+        // Point - Point case
+        {DistanceType::PointPoint,       createPointPointJoint},
+
+        // Point - Edge cases
+        {DistanceType::PointLine,        createPointLineJoint},
+        {DistanceType::PointCurve,       createPointCurveJoint},
+        //{DistanceType::PointCircle,      createPointCircleJoint},
+
+        // Point - Face cases
+        {DistanceType::PointPlane,       createPointPlaneJoint},
+        {DistanceType::PointCylinder,    createPointCylinderJoint},
+        {DistanceType::PointCone,        placeholder},
+        {DistanceType::PointTorus,       placeholder},
+        {DistanceType::PointSphere,      createPointSphereJoint},
+
+
+        // Edge cases
+        // Edge - Edge cases
+        {DistanceType::LineLine,         createLineLineJoint},
+        //{DistanceType::LineCurve,        createLineCurveJoint},
+        {DistanceType::LineCircle,       createLineCircleJoint},
+        //{DistanceType::CurveCurve,       createCurveCurveJoint},
+        //{DistanceType::CurveCircle,      createCurveCircleJoint},
+        {DistanceType::CircleCircle,     createCircleCircleJoint},
+
+        // Edge - Face cases
+        {DistanceType::LinePlane,        createLinePlaneJoint},
+        {DistanceType::LineCylinder,     placeholder},
+        {DistanceType::LineCone,         placeholder},
+        {DistanceType::LineTorus,        placeholder},
+        {DistanceType::LineSphere,       placeholder},
+        {DistanceType::CurvePlane,       placeholder},
+        {DistanceType::CurveCylinder,    placeholder},
+        {DistanceType::CurveCone,        placeholder},
+        {DistanceType::CurveTorus,       placeholder},
+        {DistanceType::CurveSphere,      placeholder},
+        //{DistanceType::CirclePlane,       placeholder},
+        //{DistanceType::CircleCylinder,    placeholder},
+        //{DistanceType::CircleCone,        placeholder},
+        //{DistanceType::CircleTorus,       placeholder},
+        //{DistanceType::CircleSphere,      placeholder},
+
+
+        // Face cases
+        // Face - Face cases
+        {DistanceType::PlanePlane,       createPlanePlaneJoint},
+        {DistanceType::PlaneCylinder,    createPlaneCylinderJoint},
+        {DistanceType::PlaneCone,        placeholder},
+        {DistanceType::PlaneTorus,       createPlaneTorusJoint},
+        {DistanceType::PlaneSphere,      createPlaneSphereJoint},
+        {DistanceType::CylinderCylinder, createCylinderCylinderJoint},
+        {DistanceType::CylinderCone,     placeholder},
+        {DistanceType::CylinderTorus,    createCylinderTorusJoint},
+        {DistanceType::CylinderSphere,   createCylinderSphereJoint},
+        {DistanceType::ConeCone,         placeholder},
+        {DistanceType::ConeTorus,        placeholder},
+        {DistanceType::ConeSphere,       placeholder},
+        {DistanceType::TorusTorus,       createTorusTorusJoint},
+        {DistanceType::TorusSphere,      createTorusSphereJoint},
+        {DistanceType::SphereSphere,     createSphereSphereJoint},
+    };
+
+    const DistanceType type = getDistanceType(joint);
+#if __cplusplus < 202002L
+    // Remove this when c++20 is available
+    auto it = handlers.find(type);
+    return it != handlers.end() ? it->second()
+                                : placeholder();
+#else
+    return handlers.contains(type) 
+               ? handlers.at(type)() 
+               : placeholder();
+#endif
 }
 
 std::vector<std::shared_ptr<MbD::ASMTJoint>>

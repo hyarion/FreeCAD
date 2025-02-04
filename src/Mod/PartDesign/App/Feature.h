@@ -55,7 +55,7 @@ public:
     enum SingleSolidRuleMode { Disabled = 0, Enforced = 1 };
 
     /// Base feature which this feature will be fused into or cut out of
-    App::PropertyLink   BaseFeature;
+    App::PropertyLink BaseFeature;
     App::PropertyLinkHidden _Body;
 
     /// Keep a copy of suppressed shapes so that we can restore them (and maybe display them)
@@ -88,7 +88,11 @@ public:
         return "PartDesignGui::ViewProvider";
     }
 
+    void onBeforeChange(const App::Property* prop) override;
     void onChanged(const App::Property* prop) override;
+    virtual void onChangedBaseFeature(const App::DocumentObject* oldBaseFeatureObject) {
+        (void)oldBaseFeatureObject;
+    }
 
     App::DocumentObject *getSubObject(const char *subname, 
         PyObject **pyObj, Base::Matrix4D *pmat, bool transform, int depth) const override;
@@ -122,6 +126,9 @@ protected:
     // TODO: Toponaming April 2024 Deprecated in favor of TopoShape method.  Remove when possible.
     static TopoDS_Shape makeShapeFromPlane(const App::DocumentObject* obj);
     static TopoShape makeTopoShapeFromPlane(const App::DocumentObject* obj);
+
+private:
+    App::DocumentObject* oldBaseFeatureObject {};
 };
 
 using FeaturePython = App::FeaturePythonT<Feature>;

@@ -171,26 +171,39 @@ TopoShape Feature::getSolid(const TopoShape& shape) const
     return shape;
 }
 
+void Feature::onBeforeChange(const App::Property* prop)
+{
+    if (prop == &BaseFeature) {
+        oldBaseFeatureObject = BaseFeature.getValue();
+    }
+    Part::Feature::onBeforeChange(prop);
+}
+
 void Feature::onChanged(const App::Property *prop)
 {
     if (!this->isRestoring()
         && this->getDocument()
         && !this->getDocument()->isPerformingTransaction()) {
-        if (prop == &Visibility || prop == &BaseFeature) {
-            auto body = Body::findBodyOf(this);
-            if (body) {
-                if (prop == &BaseFeature && BaseFeature.getValue()) {
+        if (prop == &Visibility) {
+        }
+        else if (prop == &BaseFeature) {
+            if (auto* baseFeatureObject = BaseFeature.getValue()) {
+                if (auto body = Body::findBodyOf(this)) {
                     int idx = -1;
-                    body->Group.find(this->getNameInDocument(), &idx);
                     int baseidx = -1;
-                    body->Group.find(BaseFeature.getValue()->getNameInDocument(), &idx);
-                    if (idx >= 0 && baseidx >= 0 && baseidx+1 != idx)
-                        body->insertObject(BaseFeature.getValue(), this);
+                    body->Group.find(this->getNameInDocument(), &idx);
+                    body->Group.find(baseFeatureObject->getNameInDocument(), &baseidx);
+                    if (idx >= 0 && baseidx >= 0 && baseidx+1 != idx) {
+                        body->insertObject(baseFeatureObject, this);
+                    }
+                }
+                if (oldBaseFeatureObject && oldBaseFeatureObject != baseFeatureObject) {
+                    onChangedBaseFeature(oldBaseFeatureObject);
                 }
             }
-        } else if (prop == &ShapeMaterial) {
-            auto body = Body::findBodyOf(this);
-            if (body) {
+        }
+        else if (prop == &ShapeMaterial) {
+            if (auto body = Body::findBodyOf(this)) {
                 if (body->ShapeMaterial.getValue().getUUID()
                     != ShapeMaterial.getValue().getUUID()) {
                     body->ShapeMaterial.setValue(ShapeMaterial.getValue());

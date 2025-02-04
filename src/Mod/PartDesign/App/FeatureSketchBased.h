@@ -198,6 +198,8 @@ protected:
                  Base::Vector3d& base, Base::Vector3d& dir, ForbiddenAxis checkAxis) const;
 
     void onChanged(const App::Property* prop) override;
+    void onChangedBaseFeature(const App::DocumentObject* oldBaseFeatureObject) override;
+
 private:
     bool isParallelPlane(const TopoDS_Shape&, const TopoDS_Shape&) const;
     bool isEqualGeometry(const TopoDS_Shape&, const TopoDS_Shape&) const;

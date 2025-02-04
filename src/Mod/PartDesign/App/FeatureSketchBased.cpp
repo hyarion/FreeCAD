@@ -649,6 +649,46 @@ void ProfileBased::onChanged(const App::Property* prop)
     FeatureAddSub::onChanged(prop);
 }
 
+void ProfileBased::onChangedBaseFeature(const App::DocumentObject* oldBaseFeatureObject) {
+    // Only need to act when Profile is based on the old BaseFeature
+    if (oldBaseFeatureObject != Profile.getValue()) {
+        return;
+    }
+
+    const auto profiles = Profile.getSubValues();
+    if (profiles.empty()) {
+        return;
+    }
+    auto* baseFeatureObject = Base::freecad_dynamic_cast<Part::Feature>(BaseFeature.getValue());
+    if (!baseFeatureObject) {
+        return;
+    }
+
+    // Find the profile(s) from the old BaseFeature in the new BaseFeature
+    const auto& topoShape = baseFeatureObject->Shape.getShape();
+    if (topoShape.isNull()) {
+        return; // why do we end up here?
+    }
+    auto faces = topoShape.getSubTopoShapes(TopAbs_ShapeEnum::TopAbs_FACE, TopAbs_SHAPE);
+    if (faces.empty()) {
+        return; // if this happens something is seriously wrong.
+    }
+
+    // Use history to find the old edge in the new base feature
+    std::vector<std::string> newProfiles;
+    for (const auto& face : faces) {
+        auto history = Feature::getElementHistory(baseFeatureObject, profiles.front().c_str());
+        for (auto historyItem : history) {
+            /* TODO: find a way to map
+            if (...) {
+                newProfiles.push_back(face.name())
+            }
+            */
+        }
+    }
+    Profile.setValue(baseFeatureObject, profiles);
+}
+
 void ProfileBased::getUpToFaceFromLinkSub(TopoShape& upToFace, const App::PropertyLinkSub& refFace)
 {
     App::DocumentObject* ref = refFace.getValue();

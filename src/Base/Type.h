@@ -108,7 +108,7 @@ public:
     /// Checks whether this type is derived from "type"
     [[nodiscard]] bool isDerivedFrom(const Type type) const;
     /// Returns all descendants from the given type
-    [[nodiscard]] static int getAllDerivedFrom(const Type type, std::vector<Type>& list);
+    static int getAllDerivedFrom(const Type type, std::vector<Type>& list);
     /// Returns the given named type if is derived from parent type, otherwise return bad type
     [[nodiscard]] static const Type
     getTypeIfDerivedFrom(const char* name, const Type parent, bool loadModule = false);

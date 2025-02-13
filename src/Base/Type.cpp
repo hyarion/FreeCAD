@@ -40,8 +40,8 @@ using namespace std;
 struct Base::TypeData
 {
     TypeData(const char* theName,
-             const Type type = Type::badType(),
-             const Type theParent = Type::badType(),
+             const Type type = Type::BadType,
+             const Type theParent = Type::BadType,
              Type::instantiationMethod method = nullptr)
         : name(theName)
         , parent(theParent)
@@ -58,6 +58,8 @@ struct Base::TypeData
 map<string, unsigned int> Type::typemap;
 vector<TypeData*> Type::typedata;
 set<string> Type::loadModuleSet;
+
+const Type Type::BadType;
 
 void* Type::createInstance() const
 {
@@ -80,7 +82,7 @@ void* Type::createInstanceByName(const char* TypeName, bool bLoadModule)
 
     // now the type should be in the type map
     Type type = fromName(TypeName);
-    if (type == badType()) {
+    if (type == BadType) {
         return nullptr;
     }
 
@@ -117,13 +119,6 @@ string Type::getModuleName(const char* ClassName)
     auto pos = classNameView.find("::");
 
     return pos != string_view::npos ? string(classNameView.substr(0, pos)) : string();
-}
-
-Type Type::badType()
-{
-    Type bad;
-    bad.index = 0;
-    return bad;
 }
 
 
@@ -169,7 +164,7 @@ Type Type::fromName(const char* name)
         return typedata[pos->second]->type;
     }
 
-    return Type::badType();
+    return Type::BadType;
 }
 
 Type Type::fromKey(unsigned int key)
@@ -178,7 +173,7 @@ Type Type::fromKey(unsigned int key)
         return typedata[key]->type;
     }
 
-    return Type::badType();
+    return BadType;
 }
 
 const char* Type::getName() const
@@ -200,7 +195,7 @@ bool Type::isDerivedFrom(const Type& type) const
             return true;
         }
         temp = temp.getParent();
-    } while (temp != badType());
+    } while (!temp.isBad());
 
     return false;
 }
@@ -235,5 +230,5 @@ Type Type::getTypeIfDerivedFrom(const char* name, const Type& parent, bool bLoad
         return type;
     }
 
-    return Type::badType();
+    return BadType;
 }

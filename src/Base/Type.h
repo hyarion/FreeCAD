@@ -88,33 +88,33 @@ public:
     ~Type() = default;
 
     /// creates a instance of this type
-    void* createInstance() const;
+    [[nodiscard]] void* createInstance() const;
     /// Checks whether this type can instantiate
-    bool canInstantiate() const;
+    [[nodiscard]] bool canInstantiate() const;
     /// creates a instance of the named type
-    static void* createInstanceByName(const char* TypeName, bool bLoadModule = false);
+    [[nodiscard]] static void* createInstanceByName(const char* typeName, bool loadModule = false);
     static void importModule(const char* TypeName);
 
     using instantiationMethod = void* (*)();
 
-    static Type fromName(const char* name);
-    static Type fromKey(unsigned int key);
-    const char* getName() const;
-    Type getParent() const;
-    bool isDerivedFrom(const Type type) const;
+    static const Type fromName(const char* name);
+    static const Type fromKey(unsigned int key);
+    [[nodiscard]] const char* getName() const;
+    [[nodiscard]] const Type getParent() const;
+    [[nodiscard]] bool isDerivedFrom(const Type type) const;
 
-    static int getAllDerivedFrom(const Type type, std::vector<Type>& List);
+    static int getAllDerivedFrom(const Type type, std::vector<Type>& list);
     /// Returns the given named type if is derived from parent type, otherwise return bad type
-    static Type
+    static const Type
     getTypeIfDerivedFrom(const char* name, const Type parent, bool loadModule = false);
 
     static int getNumTypes();
 
-    static Type
+    static const Type
     createType(const Type parent, const char* name, instantiationMethod method = nullptr);
 
-    unsigned int getKey() const;
-    bool isBad() const;
+    [[nodiscard]] unsigned int getKey() const;
+    [[nodiscard]] bool isBad() const;
 
     Type& operator=(const Type& type) = default;
     Type& operator=(Type&& type) = default;
@@ -130,14 +130,13 @@ public:
     static void init();
     static void destruct();
 
-    static std::string getModuleName(const char* ClassName);
-
+    static const std::string getModuleName(const char* className);
 
 private:
-    unsigned int index {0};
+    unsigned int index {0};  // 0 is "BadType"
 
     static std::map<std::string, unsigned int> typemap;
-    static std::vector<TypeData*> typedata;
+    static std::vector<TypeData*> typedata;  // use pointer to hide implementation details
     static std::set<std::string> loadModuleSet;
 };
 
@@ -179,7 +178,8 @@ inline bool Type::operator>(const Type& type) const
 
 inline bool Type::isBad() const
 {
-    return (this->index == 0);
+    const unsigned int badTypeIndex = 0;
+    return this->index == badTypeIndex;
 }
 
 }  // namespace Base

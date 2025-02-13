@@ -109,9 +109,9 @@ public:
     [[nodiscard]] static const Type
     getTypeIfDerivedFrom(const char* name, const Type parent, bool loadModule = false);
 
-    static int getNumTypes();
+    [[nodiscard]] static int getNumTypes();
 
-    static const Type
+    [[nodiscard]] static const Type
     createType(const Type parent, const char* name, instantiationMethod method = nullptr);
 
     [[nodiscard]] TypeId getKey() const;

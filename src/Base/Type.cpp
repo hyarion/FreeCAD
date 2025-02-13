@@ -67,8 +67,8 @@ namespace {
     constexpr const char* BadTypeName = "BadType";
 }
 
-std::map<std::string, unsigned int> Type::typemap;
-std::vector<TypeData*> Type::typedata;
+std::map<std::string, unsigned int> Type::typemap {{BadTypeName, 0}};
+std::vector<TypeData*> Type::typedata {new TypeData(BadTypeName, BadType, BadType, nullptr)};
 std::set<std::string> Type::loadModuleSet;
 
 const Type Type::BadType;
@@ -148,10 +148,7 @@ const Type Type::createType(const Type parent, const char* name, instantiationMe
 
 void Type::init()
 {
-    assert(Type::typedata.empty());
-
-    Type::typedata.push_back(new TypeData(BadTypeName, BadType, BadType, nullptr));
-    Type::typemap[BadTypeName] = BadTypeIndex;
+    assert(Type::typedata.size() == 1 && "Type::init() should only be called once");
 }
 
 void Type::destruct()
@@ -174,7 +171,7 @@ const Type Type::fromName(const char* name)
     return typedata[pos->second]->type;
 }
 
-const Type Type::fromKey(unsigned int key)
+const Type Type::fromKey(TypeId key)
 {
     if (key < typedata.size()) {
         return typedata[key]->type;

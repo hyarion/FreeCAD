@@ -97,20 +97,20 @@ public:
 
     using instantiationMethod = void* (*)();
 
-    static const Type fromName(const char* name);
-    static const Type fromKey(unsigned int key);
+    [[nodiscard]] static const Type fromName(const char* name);
+    [[nodiscard]] static const Type fromKey(unsigned int key);
     [[nodiscard]] const char* getName() const;
     [[nodiscard]] const Type getParent() const;
     [[nodiscard]] bool isDerivedFrom(const Type type) const;
 
-    static int getAllDerivedFrom(const Type type, std::vector<Type>& list);
+    [[nodiscard]] static int getAllDerivedFrom(const Type type, std::vector<Type>& list);
     /// Returns the given named type if is derived from parent type, otherwise return bad type
-    static const Type
+    [[nodiscard]] static const Type
     getTypeIfDerivedFrom(const char* name, const Type parent, bool loadModule = false);
 
-    static int getNumTypes();
+    [[nodiscard]] static int getNumTypes();
 
-    static const Type
+    [[nodiscard]] static const Type
     createType(const Type parent, const char* name, instantiationMethod method = nullptr);
 
     [[nodiscard]] unsigned int getKey() const;

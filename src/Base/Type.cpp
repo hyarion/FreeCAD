@@ -63,8 +63,8 @@ struct Base::TypeData
     const Type::instantiationMethod instMethod;
 };
 
-std::map<std::string, unsigned int> Type::typemap;
-std::vector<TypeData*> Type::typedata;
+std::map<std::string, unsigned int> Type::typemap {{"BadType", 0}};
+std::vector<TypeData*> Type::typedata {new TypeData("BadType", BadType, BadType, nullptr)};
 std::set<std::string> Type::loadModuleSet;
 
 const Type Type::BadType;
@@ -144,10 +144,7 @@ const Type Type::createType(const Type parent, const char* name, instantiationMe
 
 void Type::init()
 {
-    assert(Type::typedata.empty());
-
-    Type::typedata.push_back(new TypeData("BadType", BadType, BadType, nullptr));
-    Type::typemap["BadType"] = 0;
+    assert(Type::typedata.size() == 1 && "Type::init() should only be called once");
 }
 
 void Type::destruct()

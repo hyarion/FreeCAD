@@ -36,12 +36,21 @@
 using namespace Base;
 using namespace std;
 
+static_assert(sizeof(Base::Type) == sizeof(unsigned int),
+              "Base::Type has been designed to be small to be passed around by value efficiently. "
+              "The size of Base::Type has changed. Be careful when adding more data members.");
+
+static_assert(
+    sizeof(Base::Type) <= 2 * sizeof(void*),
+    "Base::Type has been designed to be small to be passed around by value efficiently. "
+    "When the size grows larger than ~2 words, consider passing by const reference instead. "
+    "Exact limit depends on the architecture and ABI.");
 
 struct Base::TypeData
 {
     TypeData(const char* theName,
-             const Type type = Type::badType(),
-             const Type theParent = Type::badType(),
+             const Type type = Type::BadType,
+             const Type theParent = Type::BadType,
              Type::instantiationMethod method = nullptr)
         : name(theName)
         , parent(theParent)
@@ -58,6 +67,8 @@ struct Base::TypeData
 map<string, unsigned int> Type::typemap;
 vector<TypeData*> Type::typedata;
 set<string> Type::loadModuleSet;
+
+const Type Type::BadType;
 
 void* Type::createInstance() const
 {
@@ -80,7 +91,7 @@ void* Type::createInstanceByName(const char* TypeName, bool bLoadModule)
 
     // now the type should be in the type map
     Type type = fromName(TypeName);
-    if (type == badType()) {
+    if (type == BadType) {
         return nullptr;
     }
 
@@ -119,15 +130,8 @@ string Type::getModuleName(const char* ClassName)
     return pos != string_view::npos ? string(classNameView.substr(0, pos)) : string();
 }
 
-Type Type::badType()
-{
-    Type bad;
-    bad.index = 0;
-    return bad;
-}
 
-
-Type Type::createType(const Type& parent, const char* name, instantiationMethod method)
+Type Type::createType(const Type parent, const char* name, instantiationMethod method)
 {
     Type newType;
     newType.index = static_cast<unsigned int>(Type::typedata.size());
@@ -169,7 +173,7 @@ Type Type::fromName(const char* name)
         return typedata[pos->second]->type;
     }
 
-    return Type::badType();
+    return Type::BadType;
 }
 
 Type Type::fromKey(unsigned int key)
@@ -178,7 +182,7 @@ Type Type::fromKey(unsigned int key)
         return typedata[key]->type;
     }
 
-    return Type::badType();
+    return BadType;
 }
 
 const char* Type::getName() const
@@ -191,21 +195,20 @@ Type Type::getParent() const
     return typedata[index]->parent;
 }
 
-bool Type::isDerivedFrom(const Type& type) const
+bool Type::isDerivedFrom(const Type type) const
 {
-
     Type temp(*this);
     do {
         if (temp == type) {
             return true;
         }
         temp = temp.getParent();
-    } while (temp != badType());
+    } while (!temp.isBad());
 
     return false;
 }
 
-int Type::getAllDerivedFrom(const Type& type, std::vector<Type>& List)
+int Type::getAllDerivedFrom(const Type type, std::vector<Type>& List)
 {
     int cnt = 0;
 
@@ -223,17 +226,15 @@ int Type::getNumTypes()
     return static_cast<int>(typedata.size());
 }
 
-Type Type::getTypeIfDerivedFrom(const char* name, const Type& parent, bool bLoadModule)
+Type Type::getTypeIfDerivedFrom(const char* name, const Type parent, bool loadModule)
 {
-    if (bLoadModule) {
+    if (loadModule) {
         importModule(name);
     }
 
-    Type type = fromName(name);
-
-    if (type.isDerivedFrom(parent)) {
+    if (Type type(fromName(name)); type.isDerivedFrom(parent)) {
         return type;
     }
 
-    return Type::badType();
+    return BadType;
 }

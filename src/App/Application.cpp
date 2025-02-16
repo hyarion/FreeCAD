@@ -1975,7 +1975,6 @@ void Application::init(int argc, char ** argv)
 void Application::initTypes()
 {
     // Base types
-    Base::Type                      ::init();
     Base::BaseClass                 ::init();
     Base::Exception                 ::init();
     Base::AbortException            ::init();

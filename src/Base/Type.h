@@ -134,7 +134,6 @@ public:
     bool operator>(const Type& type) const;
 
     static const Type BadType;
-    static void init();
     static void destruct();
 
     /// Returns the name of the module the class is defined in

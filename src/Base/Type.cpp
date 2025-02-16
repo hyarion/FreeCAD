@@ -145,12 +145,6 @@ const Type Type::createType(const Type parent, const char* name, instantiationMe
     return newType;
 }
 
-
-void Type::init()
-{
-    assert(Type::typedata.size() == 1 && "Type::init() should only be called once");
-}
-
 void Type::destruct()
 {
     for (auto it : typedata) {

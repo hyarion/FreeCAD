@@ -77,8 +77,7 @@ PyObject* TypePy::getBadType(PyObject* args)
         return nullptr;
     }
 
-    Base::Type type = Base::Type::badType();
-    return new TypePy(new Base::Type(type));
+    return new TypePy(new Base::Type(Base::Type::BadType));
 }
 
 PyObject* TypePy::getParent(PyObject* args)
@@ -123,7 +122,7 @@ PyObject* TypePy::isDerivedFrom(PyObject* args)
         return nullptr;
     } while (false);
 
-    bool val = (type != Base::Type::badType() && getBaseTypePtr()->isDerivedFrom(type));
+    bool val = (!type.isBad() && getBaseTypePtr()->isDerivedFrom(type));
     return PyBool_FromLong(val ? 1 : 0);
 }
 

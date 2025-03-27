@@ -47,7 +47,6 @@
 #endif
 
 #include <algorithm>
-#include <cfloat>
 #include <future>
 #include <iostream>
 #include <limits>
@@ -2270,12 +2269,13 @@ int System::solve_LM(SubSystem* subsys, bool isRedundantsolving)
                 x_new = x + h;
                 h_norm = h.squaredNorm();
 
+                constexpr double epsilon = std::numeric_limits<double>::epsilon();
                 if (h_norm <= eps1 * eps1 * x.norm()) {
                     // relative change in p is small, stop
                     stop = 3;
                     break;
                 }
-                else if (h_norm >= (x.norm() + eps1) / (DBL_EPSILON * DBL_EPSILON)) {
+                else if (h_norm >= (x.norm() + eps1) / (epsilon * epsilon)) {
                     // almost singular
                     stop = 4;
                     break;

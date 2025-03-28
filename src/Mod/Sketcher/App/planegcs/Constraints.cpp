@@ -864,6 +864,8 @@ double ConstraintP2PAngle::grad(double* param)
 
 double ConstraintP2PAngle::maxStep(MAP_pD_D& dir, double lim)
 {
+    constexpr double pi_18 = std::numbers::pi / 18;
+
     MAP_pD_D::iterator it = dir.find(angle());
     if (it != dir.end()) {
         double step = std::abs(it->second);
@@ -1444,6 +1446,8 @@ double ConstraintL2LAngle::grad(double* param)
 
 double ConstraintL2LAngle::maxStep(MAP_pD_D& dir, double lim)
 {
+    constexpr double pi_18 = std::numbers::pi / 18;
+
     MAP_pD_D::iterator it = dir.find(angle());
     if (it != dir.end()) {
         double step = std::abs(it->second);

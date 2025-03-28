@@ -50,6 +50,7 @@
 #include <future>
 #include <iostream>
 #include <limits>
+#include <numbers>
 
 #include "GCS.h"
 #include "qp_eq.h"
@@ -1028,6 +1029,8 @@ int System::addConstraintPerpendicularLine2Arc(Point& p1,
                                                int tagId,
                                                bool driving)
 {
+    using std::numbers::pi;
+
     addConstraintP2PCoincident(p2, a.start, tagId, driving);
     double dx = *(p2.x) - *(p1.x);
     double dy = *(p2.y) - *(p1.y);
@@ -1045,6 +1048,8 @@ int System::addConstraintPerpendicularArc2Line(Arc& a,
                                                int tagId,
                                                bool driving)
 {
+    using std::numbers::pi;
+
     addConstraintP2PCoincident(p1, a.end, tagId, driving);
     double dx = *(p2.x) - *(p1.x);
     double dy = *(p2.y) - *(p1.y);
@@ -1062,8 +1067,10 @@ int System::addConstraintPerpendicularCircle2Arc(Point& center,
                                                  int tagId,
                                                  bool driving)
 {
+    using std::numbers::pi;
+
     addConstraintP2PDistance(a.start, center, radius, tagId, driving);
-    double incrAngle = *(a.startAngle) < *(a.endAngle) ? pi_2 : -pi_2;
+    double incrAngle = *(a.startAngle) < *(a.endAngle) ? pi / 2 : -pi / 2;
     double tangAngle = *a.startAngle + incrAngle;
     double dx = *(a.start.x) - *(center.x);
     double dy = *(a.start.y) - *(center.y);
@@ -1081,8 +1088,10 @@ int System::addConstraintPerpendicularArc2Circle(Arc& a,
                                                  int tagId,
                                                  bool driving)
 {
+    using std::numbers::pi;
+
     addConstraintP2PDistance(a.end, center, radius, tagId, driving);
-    double incrAngle = *(a.startAngle) < *(a.endAngle) ? -pi_2 : pi_2;
+    double incrAngle = *(a.startAngle) < *(a.endAngle) ? -pi / 2 : pi / 2;
     double tangAngle = *a.endAngle + incrAngle;
     double dx = *(a.end.x) - *(center.x);
     double dy = *(a.end.y) - *(center.y);

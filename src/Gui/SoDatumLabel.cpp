@@ -34,7 +34,6 @@
 # endif
 
 # include <algorithm>
-# include <cfloat>
 # include <cmath>
 # include <numbers>
 # include <QFontMetrics>

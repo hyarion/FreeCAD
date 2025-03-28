@@ -24,6 +24,7 @@
 #ifndef _PreComp_
 # include <algorithm>
 # include <cfloat>
+# include <numbers>
 # ifdef FC_OS_WIN32
 #  include <windows.h>
 # endif
@@ -659,8 +660,8 @@ void NaviCubeImplementation::setSize(int size)
 
 void NaviCubeImplementation::prepare()
 {
-    static const float pi = boost::math::constants::pi<float>();
-    static const float pi1_2 = boost::math::constants::half_pi<float>();
+    using pi = std::numbers::pi_v<float>;
+    constexpr float pi1_2 = pi / 2;
 
     createCubeFaceTextures();
 
@@ -1010,16 +1011,11 @@ SbRotation NaviCubeImplementation::getNearestOrientation(PickId pickId) {
         angle *= -1;
     }
 
-    static const float pi = boost::math::constants::pi<float>();
-    static const float pi2 = boost::math::constants::two_pi<float>();
-    static const float pi1_2 = boost::math::constants::half_pi<float>();
-    static const float pi1_3 = boost::math::constants::third_pi<float>();
-    static const float pi1_4 = boost::math::constants::quarter_pi<float>();
-    static const float pi2_3 = boost::math::constants::two_thirds_pi<float>();
+    constexpr float pi = std::numbers::pi_v<float>;
 
     // Make angle positive
     if (angle < 0) {
-        angle += pi2;
+        angle += 2 * pi;
     }
 
     // f is a small value used to control orientation priority when the camera is almost exactly between two
@@ -1034,20 +1030,20 @@ SbRotation NaviCubeImplementation::getNearestOrientation(PickId pickId) {
         if (angle <= (pi / 6 + f)) {
             angle = 0;
         }
-        else if (angle <= (pi1_2 + f)) {
-            angle = pi1_3;
+        else if (angle <= (pi / 2 + f)) {
+            angle = pi / 3;
         }
         else if (angle < (5 * pi / 6 - f)) {
-            angle = pi2_3;
+            angle = 2 * pi / 3;
         }
         else if (angle <= (pi + pi / 6 + f)) {
             angle = pi;
         }
-        else if (angle < (pi + pi1_2 - f)) {
-            angle = pi + pi1_3;
+        else if (angle < (pi + pi / 2 - f)) {
+            angle = pi + pi / 3;
         }
         else if (angle < (pi + 5 * pi / 6 - f)) {
-            angle = pi + pi2_3;
+            angle = pi + 2 * pi / 3;
         }
         else {
             angle = 0;
@@ -1055,17 +1051,17 @@ SbRotation NaviCubeImplementation::getNearestOrientation(PickId pickId) {
     }
     else {
         // 4 possible orientations for the main and edge faces
-        if (angle <= (pi1_4 + f)) {
+        if (angle <= (pi / 4 + f)) {
             angle = 0;
         }
-        else if (angle <= (3 * pi1_4 + f)) {
-            angle = pi1_2;
+        else if (angle <= (3 * pi / 4 + f)) {
+            angle = pi / 2;
         }
-        else if (angle < (pi + pi1_4 - f)) {
+        else if (angle < (pi + pi / 4 - f)) {
             angle = pi;
         }
-        else if (angle < (pi + 3 * pi1_4 - f)) {
-            angle = pi + pi1_2;
+        else if (angle < (pi + 3 * pi / 4 - f)) {
+            angle = pi + pi / 2;
         }
         else {
             angle = 0;

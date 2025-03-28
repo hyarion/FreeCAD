@@ -32,7 +32,6 @@
 #  include <GL/gl.h>
 # endif
 # include <algorithm>
-# include <cfloat>
 # include <Inventor/actions/SoGLRenderAction.h>
 # include <Inventor/bundles/SoMaterialBundle.h>
 # include <Inventor/bundles/SoTextureCoordinateBundle.h>

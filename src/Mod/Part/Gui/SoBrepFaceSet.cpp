@@ -30,7 +30,6 @@
 
 #ifndef _PreComp_
 # include <algorithm>
-# include <cfloat>
 # include <map>
 # include <Inventor/SoPickedPoint.h>
 # include <Inventor/SoPrimitiveVertex.h>

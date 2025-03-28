@@ -37,7 +37,6 @@
 # include <TopoDS_Face.hxx>
 # include <TopExp_Explorer.hxx>
 
-# include <cfloat>
 # include <QMessageBox>
 # include <QRegularExpression>
 # include <QTreeWidget>

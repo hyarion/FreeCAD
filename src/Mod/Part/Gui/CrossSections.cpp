@@ -23,7 +23,6 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <cfloat>
 # include <QFuture>
 # include <QKeyEvent>
 

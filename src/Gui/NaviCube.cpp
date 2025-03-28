@@ -23,7 +23,6 @@
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <algorithm>
-# include <cfloat>
 # include <numbers>
 # ifdef FC_OS_WIN32
 #  include <windows.h>
@@ -660,7 +659,7 @@ void NaviCubeImplementation::setSize(int size)
 
 void NaviCubeImplementation::prepare()
 {
-    using pi = std::numbers::pi_v<float>;
+    constexpr float pi = std::numbers::pi_v<float>;
     constexpr float pi1_2 = pi / 2;
 
     createCubeFaceTextures();

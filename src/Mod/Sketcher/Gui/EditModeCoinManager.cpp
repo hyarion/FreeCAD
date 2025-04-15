@@ -75,6 +75,15 @@ EditModeCoinManager::ParameterObserver::~ParameterObserver()
 
 void EditModeCoinManager::ParameterObserver::initParameters()
 {
+    unsigned long HColorLong = Gui::ViewParams::instance()->getAxisXColor();
+    Base::Color Hcolor = Base::Color(static_cast<uint32_t>(HColorLong));
+
+    unsigned long VColorLong = Gui::ViewParams::instance()->getAxisYColor();
+    Base::Color Vcolor = Base::Color(static_cast<uint32_t>(VColorLong));
+
+    DrawingParameters::CrossColorH = SbColor(Hcolor.r, Hcolor.g, Hcolor.b);
+    DrawingParameters::CrossColorV = SbColor(Vcolor.r, Vcolor.g, Vcolor.b);
+
     // static map to avoid substantial if/else branching
     //
     // key->first               => String of parameter,

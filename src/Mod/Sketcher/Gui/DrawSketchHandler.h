@@ -23,7 +23,6 @@
 #ifndef SKETCHERGUI_DrawSketchHandler_H
 #define SKETCHERGUI_DrawSketchHandler_H
 
-#include <QCursor>
 #include <QPixmap>
 
 #include <Inventor/SbString.h>
@@ -283,12 +282,19 @@ protected:
     };
     PreselectionData getPreselectionData();
 
+    static std::optional<AutoConstraint>
+    findPreselectionAutoConstraint(const PreselectionData& preSel,
+                                   const Part::Geometry* geom,
+                                   const Base::Vector2d& pos,
+                                   const Base::Vector2d& dir,
+                                   AutoConstraint::TargetType type);
+
     void seekPreselectionAutoConstraint(std::vector<AutoConstraint>& constraints,
                                         const Base::Vector2d& Pos,
                                         const Base::Vector2d& Dir,
                                         AutoConstraint::TargetType type);
 
-    bool isLineCenterAutoConstraint(int GeoId, const Base::Vector2d& Pos) const;
+    static bool isLineCenterAutoConstraint(const Part::Geometry* geo, const Base::Vector2d& Pos);
 
     void seekAlignmentAutoConstraint(std::vector<AutoConstraint>& constraints,
                                      const Base::Vector2d& Dir);

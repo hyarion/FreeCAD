@@ -5,3 +5,4 @@ target_link_libraries(Sketcher_tests_run
 )
 
 add_subdirectory(App)
+add_subdirectory(Gui)

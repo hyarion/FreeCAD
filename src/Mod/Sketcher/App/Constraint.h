@@ -137,16 +137,10 @@ public:
     void substituteIndexAndPos(int fromGeoId, PointPos fromPosId, int toGeoId, PointPos toPosId);
 
     /// utility function to check if `geoId` is one of the geometries
-    bool involvesGeoId(int geoId) const
-    {
-        return First == geoId || Second == geoId || Third == geoId;
-    }
+    bool involvesGeoId(int geoId) const;
+
     /// utility function to check if (`geoId`, `posId`) is one of the points/curves
-    bool involvesGeoIdAndPosId(int geoId, PointPos posId) const
-    {
-        return (First == geoId && FirstPos == posId) || (Second == geoId && SecondPos == posId)
-            || (Third == geoId && ThirdPos == posId);
-    }
+    bool involvesGeoIdAndPosId(int geoId, PointPos posId) const;
 
     std::string typeToString() const
     {
@@ -210,12 +204,6 @@ public:
     ConstraintType Type {None};
     InternalAlignmentType AlignmentType {Undef};
     std::string Name;
-    int First {GeoEnum::GeoUndef};
-    PointPos FirstPos {PointPos::none};
-    int Second {GeoEnum::GeoUndef};
-    PointPos SecondPos {PointPos::none};
-    int Third {GeoEnum::GeoUndef};
-    PointPos ThirdPos {PointPos::none};
     float LabelDistance {10.F};
     float LabelPosition {0.F};
     bool isDriving {true};
@@ -226,6 +214,23 @@ public:
 
     bool isActive {true};
 
+    GeoElementId getElement(size_t index);  // const
+    void setElement(size_t index, GeoElementId element);
+    size_t getElementsSize() const;
+    void addElement(GeoElementId element);
+
+    // Deprecated, use getElement/setElement instead
+    int First {GeoEnum::GeoUndef};
+    int Second {GeoEnum::GeoUndef};
+    int Third {GeoEnum::GeoUndef};
+    PointPos FirstPos {PointPos::none};
+    PointPos SecondPos {PointPos::none};
+    PointPos ThirdPos {PointPos::none};
+
+private:
+    // New way to access point ids and positions.
+    // While the old way is still supported, it is recommended to the getters and setters instead.
+    std::vector<GeoElementId> elements {GeoElementId(), GeoElementId(), GeoElementId()};
 
 protected:
     boost::uuids::uuid tag;

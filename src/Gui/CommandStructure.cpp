@@ -136,8 +136,8 @@ void StdCmdGroup::activated(int iMsg)
                     App::GroupExtension::getExtensionClassTypeId())) {
                 doCommand(Doc,
                           "active_obj = App.activeDocument().getObject('%s')\n"
-                          "if active_obj and hasattr(active_obj, 'Group'):\n"
-                          "    active_obj.Group = active_obj.Group + [group]",
+                          "if active_obj and active_obj.allowObject(group):\n"
+                          "    active_obj.Group += [group]",
                           activeObj->getNameInDocument());
             }
         }

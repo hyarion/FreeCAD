@@ -49,8 +49,8 @@ struct BaseExport QuantityFormat
     };
 
     using NumberOptions = int;
-    NumberOptions option;
-    NumberFormat format;
+    NumberOptions option {OmitGroupSeparator | RejectGroupSeparator};
+    NumberFormat format {Fixed};
 
     int getPrecision() const;
     inline void setPrecision(int precision)
@@ -64,7 +64,7 @@ struct BaseExport QuantityFormat
         _denominator = denominator;
     }
 
-    QuantityFormat();
+    constexpr QuantityFormat() = default;
     explicit QuantityFormat(NumberFormat format, int decimals = -1);
     inline char toFormat() const
     {
@@ -98,7 +98,8 @@ struct BaseExport QuantityFormat
     }
 
 private:
-    int _precision, _denominator;
+    int _precision {-1};
+    int _denominator {-1};
 };
 
 /**
@@ -108,10 +109,13 @@ class BaseExport Quantity
 {
 public:
     /// default constructor
-    Quantity();
+    constexpr Quantity() = default;
     Quantity(const Quantity&) = default;
     Quantity(Quantity&&) = default;
-    explicit Quantity(double value, const Unit& unit = Unit());
+    explicit constexpr Quantity(double value, const Unit& unit = Unit())
+        : myValue {value}
+        , myUnit {unit}
+    {}
     explicit Quantity(double value, const std::string& unit);
     /// Destruction
     ~Quantity() = default;
@@ -344,7 +348,7 @@ public:
     //@}
 
 private:
-    double myValue;
+    double myValue {0.0};
     Unit myUnit;
     QuantityFormat myFormat;
 };

@@ -29,6 +29,8 @@
 #include "UnitsApi.h"
 #include "Quantity.h"
 #include "QuantityPy.h"
+#include "QuantitySpecsData.h"
+#include "UnitPy.h"
 
 
 using namespace Base;
@@ -71,6 +73,19 @@ PyMethodDef UnitsApi::Methods[] = {
      METH_VARARGS,
      "toNumber(Quantity or float, [format='g', decimals=-1]) -> str\n\n"
      "Convert a quantity or float to a string"},
+    {"predefinedQuantities",
+     sPredefinedQuantities,
+     METH_VARARGS,
+     "predefinedQuantities([unit]) -> list of dicts\n\n"
+     "Returns predefined quantities. If a Unit is given, returns only\n"
+     "quantities matching that unit dimension. Each dict has keys:\n"
+     "'name', 'symbol', 'value', 'unit'."},
+    {"findPredefined",
+     sFindPredefined,
+     METH_VARARGS,
+     "findPredefined(name) -> dict or None\n\n"
+     "Looks up a predefined quantity by name. Returns a dict with keys:\n"
+     "'name', 'symbol', 'value', 'unit', or None if not found."},
 
     {nullptr, nullptr, 0, nullptr} /* Sentinel */
 };
@@ -218,4 +233,58 @@ PyObject* UnitsApi::sToNumber(PyObject* /*self*/, PyObject* args)
 
     const Quantity quantity {value};
     return Py::new_reference_to(Py::String(quantity.toNumber(qf)));
+}
+
+namespace
+{
+PyObject* specToDict(const QuantitySpec& spec)
+{
+    Py::Dict dict;
+    dict.setItem("name", Py::String(std::string(spec.name)));
+    dict.setItem("symbol", Py::String(std::string(spec.symbol)));
+    dict.setItem("value", Py::Float(spec.value));
+    dict.setItem("unit", Py::asObject(new UnitPy(new Unit(spec.exps))));
+    return Py::new_reference_to(dict);
+}
+}  // namespace
+
+PyObject* UnitsApi::sPredefinedQuantities(PyObject* /*self*/, PyObject* args)
+{
+    PyObject* py {};
+    if (PyArg_ParseTuple(args, "O!", &(UnitPy::Type), &py)) {
+        const Unit unit {*static_cast<UnitPy*>(py)->getUnitPtr()};
+        auto matches = Quantity::predefinedQuantities(unit);
+        Py::List result;
+        for (const auto* spec : matches) {
+            result.append(Py::asObject(specToDict(*spec)));
+        }
+        return Py::new_reference_to(result);
+    }
+
+    PyErr_Clear();
+    if (PyArg_ParseTuple(args, "")) {
+        auto allSpecs = Quantity::predefinedQuantities();
+        Py::List result;
+        for (const auto& spec : allSpecs) {
+            result.append(Py::asObject(specToDict(spec)));
+        }
+        return Py::new_reference_to(result);
+    }
+
+    PyErr_SetString(PyExc_TypeError, "predefinedQuantities([Unit]) expected");
+    return nullptr;
+}
+
+PyObject* UnitsApi::sFindPredefined(PyObject* /*self*/, PyObject* args)
+{
+    const char* name {};
+    if (!PyArg_ParseTuple(args, "s", &name)) {
+        return nullptr;
+    }
+
+    const auto* spec = Quantity::findPredefined(name);
+    if (!spec) {
+        Py_RETURN_NONE;
+    }
+    return specToDict(*spec);
 }

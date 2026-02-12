@@ -64,6 +64,8 @@ constexpr auto specs = std::to_array<QuantitySpec>({
     { "Thou"                  , "thou"         , in / 1000                     , Unit::Length },
     { "Yard"                  , "yd"           , yd                            , Unit::Length },
     { "Mile"                  , "mi"           , mi                            , Unit::Length },
+    { "InchMark"              , "\""           , in                            , Unit::Length },
+    { "FootMark"              , "'"            , ft                            , Unit::Length },
 
     // --- Area ---
     { "SquareMilliMetre"      , "mm^2"         , 1.0                           , Unit::Area },
@@ -228,6 +230,9 @@ constexpr auto specs = std::to_array<QuantitySpec>({
     // --- Magnetic Flux ---
     { "Weber"                 , "Wb"           , 1e6                           , Unit::MagneticFlux },
 
+    // --- Electromagnetic Potential ---
+    { "WeberPerMetre"         , "Wb/m"         , 1e3                           , Unit::ElectromagneticPotential },
+
     // --- Electrical Capacitance ---
     { "Farad"                 , "F"            , 1e-6                          , Unit::ElectricalCapacitance },
     { "MilliFarad"            , "mF"           , 1e-9                          , Unit::ElectricalCapacitance },
@@ -268,11 +273,12 @@ constexpr auto specs = std::to_array<QuantitySpec>({
 
     // --- Thermal Conductivity ---
     { "WattPerMetreKelvin"    , "W/m/K"        , 1e3                           , Unit::ThermalConductivity },
-    { "WattPerMmKelvin"       , "W/mm/K"       , 1.0                           , Unit::ThermalConductivity },
+    { "WattPerMmKelvin"       , "W/mm/K"       , 1e6                           , Unit::ThermalConductivity },
 
     // --- Thermal Expansion Coefficient ---
-    { "UmPerMPerKelvin"       , "\xC2\xB5m/m/K", 1e-3                          , Unit::ThermalExpansionCoefficient },
+    { "UmPerMPerKelvin"       , "\xC2\xB5m/m/K", 1e-6                          , Unit::ThermalExpansionCoefficient },
     { "MmPerMmPerKelvin"      , "mm/mm/K"      , 1.0                           , Unit::ThermalExpansionCoefficient },
+    { "MetrePerMetrePerKelvin", "m/m/K"        , 1.0                           , Unit::ThermalExpansionCoefficient },
 
     // --- Volumetric Thermal Expansion Coefficient ---
     { "CubicMmPerCubicMPerK"  , "mm^3/m^3/K"   , 1e-9                          , Unit::VolumetricThermalExpansionCoefficient },

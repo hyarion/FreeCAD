@@ -26,19 +26,19 @@
 
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
-#include <functional>
 
 namespace Base
 {
 
+struct QuantitySpec;
 
 struct UnitTranslationSpec
 {
-    double threshold {1};
-    std::string unitString;
-    double factor {1};
-    std::function<std::string(double)> fn {nullptr};
+    double threshold {0};
+    const QuantitySpec* quantity {nullptr};
+    std::string_view specialFunction {};
 };
 
 struct UnitsSchemaSpec
@@ -54,7 +54,7 @@ struct UnitsSchemaSpec
     /**
      * Applicable spec is the first with threshold > value under test
      * Special case: Threshold = 0 : default
-     * Special case: Factor = 0 : unitString contains name of special function to run
+     * Special case: quantity = nullptr : specialFunction names a custom formatter
      */
     std::map<std::string, std::vector<UnitTranslationSpec>> translationSpecs;
 };

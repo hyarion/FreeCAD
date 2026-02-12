@@ -322,7 +322,7 @@ constexpr Quantity fromSpec(std::string_view name)
 {
     const auto& specs = Base::QuantitySpecsData::specs;
     auto it = std::ranges::find(specs, name, &Base::QuantitySpec::name);
-    return Quantity {it->value, Base::Unit {it->exps}};
+    return Quantity {it->value, it->unit};
 }
 }  // namespace
 
@@ -476,31 +476,6 @@ constexpr Quantity QUANTITY_BY_NAME(Gon);
 // clang-format on
 
 #undef QUANTITY_BY_NAME
-
-// === Predefined quantity registry queries ==================================
-
-std::vector<Base::QuantitySpec const*> Quantity::predefinedQuantities(const Unit& unit)
-{
-    std::vector<QuantitySpec const*> result;
-    for (const auto& spec : QuantitySpecsData::specs) {
-        if (Unit {spec.exps} == unit) {
-            result.push_back(&spec);
-        }
-    }
-    return result;
-}
-
-std::span<const Base::QuantitySpec> Quantity::predefinedQuantities()
-{
-    return QuantitySpecsData::specs;
-}
-
-const Base::QuantitySpec* Quantity::findPredefined(std::string_view name)
-{
-    const auto& specs = QuantitySpecsData::specs;
-    auto it = std::ranges::find(specs, name, &QuantitySpec::name);
-    return it != specs.end() ? &(*it) : nullptr;
-}
 
 // === Parser & Scanner stuff ===============================================
 

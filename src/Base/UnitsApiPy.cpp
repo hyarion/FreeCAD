@@ -243,7 +243,7 @@ PyObject* specToDict(const QuantitySpec& spec)
     dict.setItem("name", Py::String(std::string(spec.name)));
     dict.setItem("symbol", Py::String(std::string(spec.symbol)));
     dict.setItem("value", Py::Float(spec.value));
-    dict.setItem("unit", Py::asObject(new UnitPy(new Unit(spec.exps))));
+    dict.setItem("unit", Py::asObject(new UnitPy(new Unit(spec.unit))));
     return Py::new_reference_to(dict);
 }
 }  // namespace
@@ -253,7 +253,7 @@ PyObject* UnitsApi::sPredefinedQuantities(PyObject* /*self*/, PyObject* args)
     PyObject* py {};
     if (PyArg_ParseTuple(args, "O!", &(UnitPy::Type), &py)) {
         const Unit unit {*static_cast<UnitPy*>(py)->getUnitPtr()};
-        auto matches = Quantity::predefinedQuantities(unit);
+        auto matches = QuantitySpecsData::findByUnit(unit);
         Py::List result;
         for (const auto* spec : matches) {
             result.append(Py::asObject(specToDict(*spec)));
@@ -263,7 +263,7 @@ PyObject* UnitsApi::sPredefinedQuantities(PyObject* /*self*/, PyObject* args)
 
     PyErr_Clear();
     if (PyArg_ParseTuple(args, "")) {
-        auto allSpecs = Quantity::predefinedQuantities();
+        auto allSpecs = QuantitySpecsData::all();
         Py::List result;
         for (const auto& spec : allSpecs) {
             result.append(Py::asObject(specToDict(spec)));
@@ -282,7 +282,7 @@ PyObject* UnitsApi::sFindPredefined(PyObject* /*self*/, PyObject* args)
         return nullptr;
     }
 
-    const auto* spec = Quantity::findPredefined(name);
+    const auto* spec = QuantitySpecsData::findByName(name);
     if (!spec) {
         Py_RETURN_NONE;
     }

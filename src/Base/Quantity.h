@@ -28,9 +28,7 @@
 
 #include "Unit.h"
 #include "QuantitySpecsData.h"
-#include <span>
 #include <string>
-#include <vector>
 
 namespace Base
 {
@@ -348,18 +346,6 @@ public:
     static const Quantity Gon;
     static const Quantity AngMinute;
     static const Quantity AngSecond;
-    //@}
-
-    /** Predefined quantity registry queries. */
-    //@{
-    /// Returns all predefined quantity specs matching a given unit
-    static std::vector<QuantitySpec const*> predefinedQuantities(const Unit& unit);
-
-    /// Returns all predefined quantity specs
-    static std::span<const QuantitySpec> predefinedQuantities();
-
-    /// Looks up a predefined quantity by name
-    static const QuantitySpec* findPredefined(std::string_view name);
     //@}
 
 private:

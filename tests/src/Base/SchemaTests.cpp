@@ -544,6 +544,18 @@ TEST_F(SchemaTest, imperial_civil_special_function_angle_no_degrees)
     EXPECT_EQ(result, expect);
 }
 
+// VolumetricThermalExpansionCoefficient has the same SI exponents as ThermalExpansionCoefficient
+// (both are 1/K), so parsing "mm^3/m^3/K" produces ThermalExpansionCoefficient, not Volumetric.
+// A sweep round-trip test can't distinguish them. Test the display directly via the Unit constant.
+TEST_F(SchemaTest, volumetric_thermal_expansion_uses_volumetric_unit)
+{
+    const auto result
+        = setWithPrecision("Internal", 1e-9, Unit::VolumetricThermalExpansionCoefficient, 6);
+    const auto expect {"1.000000 mm^3/m^3/K"};
+
+    EXPECT_EQ(result, expect);
+}
+
 TEST_F(SchemaTest, unknown_schema_name_throws)
 {
     EXPECT_THROW(UnitsApi::setSchema("Unknown"), RuntimeError);
@@ -595,7 +607,8 @@ TEST_F(SchemaTest, round_trip_test)
         Unit::SpecificEnergy,
         Unit::ThermalConductivity,
         Unit::ThermalExpansionCoefficient,
-        Unit::VolumetricThermalExpansionCoefficient,
+        Unit::VolumetricThermalExpansionCoefficient,  // same exponents as above; display tested
+                                                      // separately
         Unit::SpecificHeat,
         Unit::ThermalTransferCoefficient,
         Unit::HeatFlux,

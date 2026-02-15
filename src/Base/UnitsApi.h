@@ -89,6 +89,7 @@ protected:
     static PyObject* sToNumber(PyObject* self, PyObject* args);
     static PyObject* sPredefinedQuantities(PyObject* self, PyObject* args);
     static PyObject* sFindPredefined(PyObject* self, PyObject* args);
+    static PyObject* sPredefinedUnits(PyObject* self, PyObject* args);
 };
 
 }  // namespace Base

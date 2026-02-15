@@ -60,9 +60,17 @@ std::string UnitsSchema::translate(const Quantity& quant, double& factor, std::s
         return toLocale(quant, factor, unitString);
     }
 
-    const auto unitName = quant.getUnit().getTypeString();
+    auto unitName = quant.getUnit().getTypeString();
     if (!spec.translationSpecs.contains(unitName)) {
-        return toLocale(quant, factor, unitString);
+        // Fallback: find a unitSpecs entry with the same exponents that has a schema group
+        const auto exps = quant.getUnit().exponents();
+        auto fallback = std::ranges::find_if(Base::unitSpecs, [&](const UnitSpec& us) {
+            return us.exps == exps && spec.translationSpecs.contains(std::string(us.name));
+        });
+        if (fallback == Base::unitSpecs.end()) {
+            return toLocale(quant, factor, unitString);
+        }
+        unitName = std::string(fallback->name);
     }
 
     const auto value = quant.getValue();

@@ -91,8 +91,8 @@ inline const UnitsSchemaSpec s2
         { "Area",         {{ 0 , q("SquareInch")              }}},
         { "Volume",       {{ 0 , q("CubicInch")               }}},
         { "Mass",         {{ 0 , q("Pound")                   }}},
-        { "Pressure",     {{ 0 , q("PSI")                     }}},
-        { "Stiffness",    {{ 0 , q("PoundForcePerInch")       }}},
+        { "Pressure",                {{ 0 , q("PSI")              }}},
+        { "Stiffness",               {{ 0 , q("PoundForcePerInch") }}},
         { "Velocity",     {{ 0 , q("InchPerMinute")           }}},
         { "Acceleration", {{ 0 , q("InchPerMinuteSquared")    }}}
     }
@@ -156,13 +156,6 @@ inline const UnitsSchemaSpec s3
             { 0               , q("WattPerSqMetreKelvin")    }}
         },
         { "Pressure", {
-            { 10.0            , q("Pascal")                  },
-            { 1e4             , q("KiloPascal")              },
-            { 1e7             , q("MegaPascal")              },
-            { 1e10            , q("GigaPascal")              },
-            { 0               , q("Pascal")                  }}
-        },
-        { "Stress", {
             { 10.0            , q("Pascal")                  },
             { 1e4             , q("KiloPascal")              },
             { 1e7             , q("MegaPascal")              },
@@ -374,13 +367,6 @@ inline const UnitsSchemaSpec s4
             { 0               , q("MetrePerSecondSquared")   }}
         },
         { "Pressure", {
-            { 10.0            , q("Pascal")                  },
-            { 1e4             , q("KiloPascal")              },
-            { 1e7             , q("MegaPascal")              },
-            { 1e10            , q("GigaPascal")              },
-            { 0               , q("Pascal")                  }}
-        },
-        { "Stress", {
             { 10.0            , q("Pascal")                  },
             { 1e4             , q("KiloPascal")              },
             { 1e7             , q("MegaPascal")              },
@@ -656,9 +642,9 @@ inline const UnitsSchemaSpec s9
         { "Length"   , {{ 0   , q("Foot")                        }}},
         { "Area"     , {{ 0   , q("SquareFoot2")                 }}},
         { "Volume"   , {{ 0   , q("CubicFoot2")                  }}},
-        { "Mass"     , {{ 0   , q("Pound")                       }}},
-        { "Pressure" , {{ 0   , q("PSI")                         }}},
-        { "Stiffness", {{ 0   , q("PoundForcePerInch")           }}},
+        { "Mass"                     , {{ 0 , q("Pound")              }}},
+        { "Pressure"                 , {{ 0 , q("PSI")               }}},
+        { "Stiffness"               , {{ 0 , q("PoundForcePerInch")  }}},
         { "Velocity" , {{ 0   , q("MilePerHour")                 }}},
         { "Angle"    , {{ 0   , nullptr, "toDMS"                 }}}
     }

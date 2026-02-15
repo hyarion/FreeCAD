@@ -63,6 +63,7 @@ constexpr auto unitSpecs = std::to_array<UnitSpec>({
     //                                             .   .   .   .   .   AmountOfSubstance
     //                                             .   .   .   .   .   .   LuminousIntensity
     //                                             .   .   .   .   .   .   .   Angle
+    // Base dimensions
     { "1"                                     , {  0,  0,  0,  0,  0,  0,  0,  0 } },
     { "Length"                                , {  1                             } },
     { "Mass"                                  , {  0,  1                         } },
@@ -72,8 +73,8 @@ constexpr auto unitSpecs = std::to_array<UnitSpec>({
     { "AmountOfSubstance"                     , {  0,  0,  0,  0,  0,  1         } },
     { "LuminousIntensity"                     , {  0,  0,  0,  0,  0,  0,  1     } },
     { "Angle"                                 , {  0,  0,  0,  0,  0,  0,  0,  1 } },
+    // Derived types (canonical)
     { "Acceleration"                          , {  1,  0, -2                     } },
-    { "AngleOfFriction"                       , {  0,  0,  0,  0,  0,  0,  0,  1 } },
     { "Area"                                  , {  2                             } },
     { "CurrentDensity"                        , { -2,  0,  0,  1                 } },
     { "Density"                               , { -3,  1                         } },
@@ -101,24 +102,28 @@ constexpr auto unitSpecs = std::to_array<UnitSpec>({
     { "Moment"                                , {  2,  1, -2                     } },
     { "Pressure"                              , { -1,  1, -2                     } },
     { "Power"                                 , {  2,  1, -3                     } },
-    { "ShearModulus"                          , { -1,  1, -2                     } },
     { "SpecificEnergy"                        , {  2,  0, -2                     } },
     { "SpecificHeat"                          , {  2,  0, -2,  0, -1             } },
     { "Stiffness"                             , {  0,  1, -2                     } },
     { "StiffnessDensity"                      , { -2,  1, -2                     } },
-    { "Stress"                                , { -1,  1, -2                     } },
     { "SurfaceChargeDensity"                  , { -2,  0,  1,  1                 } },
     { "ThermalConductivity"                   , {  1,  1, -3,  0, -1             } },
     { "ThermalExpansionCoefficient"           , {  0,  0,  0,  0, -1             } },
     { "ThermalTransferCoefficient"            , {  0,  1, -3,  0, -1             } },
-    { "UltimateTensileStrength"               , { -1,  1, -2                     } },
     { "VacuumPermittivity"                    , { -3, -1,  4,  2                 } },
     { "Velocity"                              , {  1,  0, -1                     } },
     { "Volume"                                , {  3                             } },
     { "VolumeChargeDensity"                   , { -3,  0,  1,  1                 } },
     { "VolumeFlowRate"                        , {  3,  0, -1                     } },
-    { "VolumetricThermalExpansionCoefficient" , {  0,  0,  0,  0, -1             } },
     { "Work"                                  , {  2,  1, -2                     } },
+    // Aliases: share exponents with a canonical type above. Must stay below
+    // their canonical counterpart so getTypeString() finds the canonical name first.
+    { "AngleOfFriction"                       , {  0,  0,  0,  0,  0,  0,  0,  1 } },
+    { "CompressiveStrength"                   , { -1,  1, -2                     } },
+    { "ShearModulus"                          , { -1,  1, -2                     } },
+    { "Stress"                                , { -1,  1, -2                     } },
+    { "UltimateTensileStrength"               , { -1,  1, -2                     } },
+    { "VolumetricThermalExpansionCoefficient" , {  0,  0,  0,  0, -1             } },
     { "YieldStrength"                         , { -1,  1, -2                     } },
     { "YoungsModulus"                         , { -1,  1, -2                     } },
 });  // clang-format on
@@ -275,7 +280,7 @@ inline constexpr Unit UNIT_BY_NAME(AmountOfSubstance);
 inline constexpr Unit UNIT_BY_NAME(Angle);
 inline constexpr Unit Unit::AngleOfFriction                       = Unit::makeUnit("Angle"                       );
 inline constexpr Unit UNIT_BY_NAME(Area);
-inline constexpr Unit Unit::CompressiveStrength                   = Unit::makeUnit("Pressure"                    );
+inline constexpr Unit UNIT_BY_NAME(CompressiveStrength);
 inline constexpr Unit UNIT_BY_NAME(CurrentDensity);
 inline constexpr Unit UNIT_BY_NAME(Density);
 inline constexpr Unit UNIT_BY_NAME(DissipationRate);
@@ -307,28 +312,28 @@ inline constexpr Unit UNIT_BY_NAME(Moment);
 inline constexpr Unit Unit::One                                   = Unit::makeUnit("1"                           );
 inline constexpr Unit UNIT_BY_NAME(Pressure);
 inline constexpr Unit UNIT_BY_NAME(Power);
-inline constexpr Unit Unit::ShearModulus                          = Unit::makeUnit("Pressure"                    );
+inline constexpr Unit UNIT_BY_NAME(ShearModulus);
 inline constexpr Unit UNIT_BY_NAME(SpecificEnergy);
 inline constexpr Unit UNIT_BY_NAME(SpecificHeat);
 inline constexpr Unit UNIT_BY_NAME(Stiffness);
 inline constexpr Unit UNIT_BY_NAME(StiffnessDensity);
-inline constexpr Unit Unit::Stress                                = Unit::makeUnit("Pressure"                    );
+inline constexpr Unit UNIT_BY_NAME(Stress);
 inline constexpr Unit UNIT_BY_NAME(SurfaceChargeDensity);
 inline constexpr Unit UNIT_BY_NAME(Temperature);
 inline constexpr Unit UNIT_BY_NAME(TimeSpan);
 inline constexpr Unit UNIT_BY_NAME(ThermalConductivity);
 inline constexpr Unit UNIT_BY_NAME(ThermalExpansionCoefficient);
 inline constexpr Unit UNIT_BY_NAME(ThermalTransferCoefficient);
-inline constexpr Unit Unit::UltimateTensileStrength               = Unit::makeUnit("Pressure"                    );
+inline constexpr Unit UNIT_BY_NAME(UltimateTensileStrength);
 inline constexpr Unit UNIT_BY_NAME(VacuumPermittivity);
 inline constexpr Unit UNIT_BY_NAME(Velocity);
 inline constexpr Unit UNIT_BY_NAME(Volume);
 inline constexpr Unit UNIT_BY_NAME(VolumeChargeDensity);
 inline constexpr Unit UNIT_BY_NAME(VolumeFlowRate);
-inline constexpr Unit Unit::VolumetricThermalExpansionCoefficient = Unit::makeUnit("ThermalExpansionCoefficient" );
+inline constexpr Unit UNIT_BY_NAME(VolumetricThermalExpansionCoefficient);
 inline constexpr Unit UNIT_BY_NAME(Work);
-inline constexpr Unit Unit::YieldStrength                         = Unit::makeUnit("Pressure"                    );
-inline constexpr Unit Unit::YoungsModulus                         = Unit::makeUnit("Pressure"                    );
+inline constexpr Unit UNIT_BY_NAME(YieldStrength);
+inline constexpr Unit UNIT_BY_NAME(YoungsModulus);
 // clang-format on
 
 #undef UNIT_BY_NAME

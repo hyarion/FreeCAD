@@ -22,6 +22,9 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <array>
+#include <unordered_set>
+
 #include <QApplication>
 #include <QClipboard>
 #include <QLocale>
@@ -29,6 +32,7 @@
 #include "Dialogs/DlgUnitsCalculatorImp.h"
 #include "ui_DlgUnitsCalculator.h"
 #include <Base/Quantity.h>
+#include <Base/QuantitySpecsData.h>
 #include <Base/UnitsApi.h>
 
 using namespace Gui::Dialog;
@@ -73,9 +77,9 @@ DlgUnitsCalculator::DlgUnitsCalculator(QWidget* parent, Qt::WindowFlags fl)
             this, &DlgUnitsCalculator::returnPressed);
     connect(ui->ValueInput, &InputField::parseError,
             this, &DlgUnitsCalculator::parseError);
-    connect(ui->UnitInput, &QLineEdit::textChanged,
+    connect(ui->UnitInput, &QComboBox::editTextChanged,
             this, &DlgUnitsCalculator::textChanged);
-    connect(ui->UnitInput, &QLineEdit::returnPressed,
+    connect(ui->UnitInput->lineEdit(), &QLineEdit::returnPressed,
             this, &DlgUnitsCalculator::returnPressed);
     connect(ui->pushButton_Close, &QPushButton::clicked,
             this, &DlgUnitsCalculator::accept);
@@ -86,28 +90,80 @@ DlgUnitsCalculator::DlgUnitsCalculator(QWidget* parent, Qt::WindowFlags fl)
     ui->ValueInput->setParamGrpPath(QByteArray("User parameter:BaseApp/History/UnitsCalculator"));
     // set a default that also illustrates how the dialog works
     ui->ValueInput->setText(QStringLiteral("1 cm"));
-    ui->UnitInput->setText(QStringLiteral("in"));
+    ui->UnitInput->setCurrentText(QStringLiteral("in"));
 
-    units << Unit::Acceleration << Unit::AmountOfSubstance << Unit::Angle << Unit::Area
-          << Unit::Density << Unit::CurrentDensity << Unit::DissipationRate << Unit::DynamicViscosity
-          << Unit::ElectricalCapacitance << Unit::ElectricalInductance << Unit::ElectricalConductance
-          << Unit::ElectricalResistance << Unit::ElectricalConductivity << Unit::ElectricCharge
-          << Unit::ElectricCurrent << Unit::ElectricPotential << Unit::Force << Unit::Frequency
-          << Unit::HeatFlux << Unit::InverseArea << Unit::InverseLength << Unit::InverseVolume
-          << Unit::KinematicViscosity << Unit::Length << Unit::LuminousIntensity << Unit::Mass
-          << Unit::MagneticFieldStrength << Unit::MagneticFlux << Unit::MagneticFluxDensity
-          << Unit::Magnetization << Unit::Power << Unit::Pressure << Unit::SpecificEnergy
-          << Unit::SpecificHeat << Unit::Stiffness << Unit::Temperature << Unit::ThermalConductivity
-          << Unit::ThermalExpansionCoefficient << Unit::ThermalTransferCoefficient << Unit::TimeSpan
-          << Unit::VacuumPermittivity << Unit::Velocity << Unit::Volume << Unit::VolumeFlowRate
-          << Unit::VolumetricThermalExpansionCoefficient << Unit::Work;
-    for (const Unit& it : units) {
-        ui->unitsBox->addItem(QString::fromStdString(it.getTypeString()));
+    std::unordered_set<std::string> seenTypes;
+    for (const auto& spec : Base::QuantitySpecsData::all()) {
+        auto typeStr = spec.unit.getTypeString();
+        if (!typeStr.empty() && seenTypes.insert(typeStr).second) {
+            units.append(spec.unit);
+            ui->unitsBox->addItem(QString::fromStdString(typeStr));
+        }
     }
 
     ui->quantitySpinBox->setValue(1.0);
     ui->quantitySpinBox->setUnit(units.front());
     ui->spinBoxDecimals->setValue(UnitsApi::getDecimals());
+}
+
+void DlgUnitsCalculator::populateUnitInput(const Base::Unit& unit)
+{
+    if (lastInputUnit && unit == *lastInputUnit) {
+        return;
+    }
+    lastInputUnit = unit;
+
+    QSignalBlocker blocker(ui->UnitInput);
+    QString prevText = ui->UnitInput->currentText();
+    ui->UnitInput->clear();
+
+    if (unit == Base::Unit() || unit == Base::Unit::One) {
+        ui->UnitInput->setCurrentText(prevText);
+        return;
+    }
+
+    auto specs = Base::QuantitySpecsData::findByUnit(unit);
+    auto preferred = Base::UnitsApi::getUnitSystem();
+    auto other = (preferred == Base::UnitSystem::Metric) ? Base::UnitSystem::Imperial
+                                                         : Base::UnitSystem::Metric;
+
+    constexpr auto excludedSpecs = std::to_array<std::string_view>({
+        "InchMark",
+        "FootMark",
+        "SquareFoot",
+        "CubicFoot",
+        "AngMinute",
+        "AngSecond",
+    });
+
+    auto addSpecs = [&](Base::UnitSystem sys) {
+        for (const auto* spec : specs) {
+            if (spec->unitSystem != sys) {
+                continue;
+            }
+            if (std::ranges::find(excludedSpecs, spec->name) != excludedSpecs.end()) {
+                continue;
+            }
+            ui->UnitInput->addItem(
+                QString::fromUtf8(spec->symbol.data(), static_cast<int>(spec->symbol.size()))
+            );
+        }
+    };
+
+    addSpecs(preferred);
+    int countBefore = ui->UnitInput->count();
+    addSpecs(other);
+    if (ui->UnitInput->count() > countBefore) {
+        ui->UnitInput->insertSeparator(countBefore);
+    }
+
+    int idx = ui->UnitInput->findText(prevText);
+    if (idx >= 0) {
+        ui->UnitInput->setCurrentIndex(idx);
+    }
+    else if (ui->UnitInput->count() > 0) {
+        ui->UnitInput->setCurrentIndex(0);
+    }
 }
 
 /** Destroys the object and frees any allocated resources */
@@ -131,18 +187,21 @@ void DlgUnitsCalculator::textChanged(QString unit)
 
 void DlgUnitsCalculator::valueChanged(const Quantity& quant)
 {
+    populateUnitInput(quant.getUnit());
+
     std::string unitTypeStr;
     try {
-        unitTypeStr = Quantity::parse(ui->UnitInput->text().toStdString()).getUnit().getTypeString();
+        unitTypeStr
+            = Quantity::parse(ui->UnitInput->currentText().toStdString()).getUnit().getTypeString();
     }
     catch (const Base::ParserError&) {
     }
     // first check the unit, if it is invalid, getTypeString() outputs an empty string
     // explicitly check for "ee" like in "eeV" because this would trigger an exception in Unit
     // since it expects then a scientific notation number like "1e3"
-    if ((ui->UnitInput->text().mid(0, 2) == QStringLiteral("ee")) || unitTypeStr.empty()) {
+    if ((ui->UnitInput->currentText().mid(0, 2) == QStringLiteral("ee")) || unitTypeStr.empty()) {
         ui->ValueOutput->setText(
-            QStringLiteral("%1 %2").arg(tr("unknown unit:"), ui->UnitInput->text())
+            QStringLiteral("%1 %2").arg(tr("unknown unit:"), ui->UnitInput->currentText())
         );
         ui->pushButton_Copy->setEnabled(false);
     }
@@ -153,7 +212,8 @@ void DlgUnitsCalculator::valueChanged(const Quantity& quant)
             ui->pushButton_Copy->setEnabled(false);
         }
         else {  // the unit is valid and has the same type
-            double convertValue = Quantity::parse("1" + ui->UnitInput->text().toStdString()).getValue();
+            double convertValue
+                = Quantity::parse("1" + ui->UnitInput->currentText().toStdString()).getValue();
             // we got now e.g. for "1 in" the value '25.4' because 1 in = 25.4 mm
             // the result is now just quant / convertValue because the input is always in a base
             // unit (an input of "1 cm" will immediately be converted to "10 mm" by Gui::InputField
@@ -168,7 +228,7 @@ void DlgUnitsCalculator::valueChanged(const Quantity& quant)
                 val = QLocale().toString(value, 'f', UnitsApi::getDecimals());
             }
             // create the output string
-            QString out = QStringLiteral("%1 %2").arg(val, ui->UnitInput->text());
+            QString out = QStringLiteral("%1 %2").arg(val, ui->UnitInput->currentText());
             ui->ValueOutput->setText(out);
             ui->pushButton_Copy->setEnabled(true);
         }

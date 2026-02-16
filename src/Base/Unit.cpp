@@ -66,16 +66,6 @@ Unit::Unit(
     checkRange();
 }
 
-bool Unit::operator==(const Unit& that) const
-{
-    return _exps == that._exps;
-}
-
-bool Unit::operator!=(const Unit& that) const
-{
-    return _exps != that._exps;
-}
-
 Unit& Unit::operator*=(const Unit& that)
 {
     *this = *this * that;

@@ -141,6 +141,11 @@ std::string UnitsSchema::getBasicLengthUnit() const
     return spec.basicLengthUnitStr;
 }
 
+Base::UnitSystem UnitsSchema::getUnitSystem() const
+{
+    return spec.unitSystem;
+}
+
 std::string UnitsSchema::getName() const
 {
     return spec.name;

@@ -58,6 +58,11 @@ PyMethodDef UnitsApi::Methods[] = {
      METH_VARARGS,
      "getSchema() -> int\n\n"
      "The int is the position of the tuple returned by listSchemas"},
+    {"getUnitSystem",
+     sGetUnitSystem,
+     METH_VARARGS,
+     "getUnitSystem() -> str\n\n"
+     "Returns 'Metric' or 'Imperial' for the current schema"},
     {"setSchema",
      sSetSchema,
      METH_VARARGS,
@@ -154,6 +159,16 @@ PyObject* UnitsApi::sGetSchema(PyObject* /*self*/, PyObject* args)
     }
 
     return Py_BuildValue("i", schemas->currentSchema()->getNum());
+}
+
+PyObject* UnitsApi::sGetUnitSystem(PyObject* /*self*/, PyObject* args)
+{
+    if (!PyArg_ParseTuple(args, "")) {
+        return nullptr;
+    }
+
+    const char* name = getUnitSystem() == UnitSystem::Metric ? "Metric" : "Imperial";
+    return Py_BuildValue("s", name);
 }
 
 PyObject* UnitsApi::sSetSchema(PyObject* /*self*/, PyObject* args)

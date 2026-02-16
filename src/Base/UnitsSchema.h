@@ -47,6 +47,7 @@ public:
     [[nodiscard]] bool isMultiUnitLength() const;
     [[nodiscard]] bool isMultiUnitAngle() const;
     [[nodiscard]] std::string getBasicLengthUnit() const;
+    [[nodiscard]] UnitSystem getUnitSystem() const;
     [[nodiscard]] std::string getName() const;
     [[nodiscard]] std::string getDescription() const;
     [[nodiscard]] int getNum() const;

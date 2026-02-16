@@ -152,8 +152,14 @@ public:
         const int angle = 0
     );
 
-    bool operator==(const Unit&) const;
-    bool operator!=(const Unit& that) const;
+    constexpr bool operator==(const Unit& that) const
+    {
+        return _exps == that._exps;
+    }
+    constexpr bool operator!=(const Unit& that) const
+    {
+        return _exps != that._exps;
+    }
     Unit& operator*=(const Unit& that);
     Unit& operator/=(const Unit& that);
     Unit operator*(const Unit&) const;
@@ -163,6 +169,10 @@ public:
     [[nodiscard]] Unit root(const uint8_t num) const;
 
     [[nodiscard]] UnitExponents exponents() const;
+    [[nodiscard]] constexpr std::string_view name() const
+    {
+        return _name;
+    }
     [[nodiscard]] int length() const;
 
     [[nodiscard]] std::string getString() const;       // E.g. kg, mm^2, mm*kg/s^2

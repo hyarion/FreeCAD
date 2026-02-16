@@ -62,7 +62,7 @@ consteval const QuantitySpec* q(std::string_view name)
 // NOLINTBEGIN
 // clang-format off
 inline const UnitsSchemaSpec s0
-{ 6, "MmMin", "mm" , false, false , QT_TRANSLATE_NOOP("UnitsApi", "Metric small parts & CNC (mm, mm/min)"), false,
+{ 6, "MmMin", "mm" , false, false , QT_TRANSLATE_NOOP("UnitsApi", "Metric small parts & CNC (mm, mm/min)"), false, UnitSystem::Metric,
     {
         { "Length",   {{ 0 , q("MilliMetre")          }}},
         { "Angle",    {{ 0 , q("Degree")              }}},
@@ -71,8 +71,9 @@ inline const UnitsSchemaSpec s0
 };
 
 inline const UnitsSchemaSpec s1
-{ 9, "MeterDecimal", "m", false, false, QT_TRANSLATE_NOOP("UnitsApi", "Meter decimal (m, m², m³)"), false,
+{ 9, "MeterDecimal", "m", false, false, QT_TRANSLATE_NOOP("UnitsApi", "Meter decimal (m, m², m³)"), false, UnitSystem::Metric,
     {
+        { "Angle",              {{ 0 , q("Degree")           }}},
         { "Length",             {{ 0 , q("Metre")            }}},
         { "Area",               {{ 0 , q("SquareMetre")      }}},
         { "Volume",             {{ 0 , q("CubicMetre")       }}},
@@ -84,7 +85,7 @@ inline const UnitsSchemaSpec s1
 };
 
 inline const UnitsSchemaSpec s2
-{ 3, "ImperialDecimal", "in", false, false, QT_TRANSLATE_NOOP("UnitsApi", "Imperial decimal (in, lb)"), false,
+{ 3, "ImperialDecimal", "in", false, false, QT_TRANSLATE_NOOP("UnitsApi", "Imperial decimal (in, lb)"), false, UnitSystem::Imperial,
     {
         { "Length",       {{ 0 , q("Inch")                    }}},
         { "Angle",        {{ 0 , q("Degree")                  }}},
@@ -99,7 +100,7 @@ inline const UnitsSchemaSpec s2
 };
 
 inline const UnitsSchemaSpec s3
-{ 0, "Internal", "mm", false, false, QT_TRANSLATE_NOOP("UnitsApi", "Standard (mm, kg, s, °)"), true,
+{ 0, "Internal", "mm", false, false, QT_TRANSLATE_NOOP("UnitsApi", "Standard (mm, kg, s, °)"), true, UnitSystem::Metric,
     {
         { "Length", {
             { 1e-6            , q("MilliMetre")              },
@@ -328,8 +329,11 @@ inline const UnitsSchemaSpec s3
 };
 
 inline const UnitsSchemaSpec s4
-{ 1, "MKS", "m", false, false, QT_TRANSLATE_NOOP("UnitsApi", "MKS (m, kg, s, °)") , false,
+{ 1, "MKS", "m", false, false, QT_TRANSLATE_NOOP("UnitsApi", "MKS (m, kg, s, °)") , false, UnitSystem::Metric,
     {
+        { "Angle", {
+            { 0               , q("Degree")                  }}
+        },
         { "Length", {
             { 1e-6            , q("MilliMetre")              },
             { 1e-3            , q("NanoMetre")               },
@@ -549,8 +553,11 @@ inline const UnitsSchemaSpec s4
 };
 
 inline const UnitsSchemaSpec s5
-{ 4, "Centimeter", "cm", false, false, QT_TRANSLATE_NOOP("UnitsApi", "Building Euro (cm, m², m³)") , false,
+{ 4, "Centimeter", "cm", false, false, QT_TRANSLATE_NOOP("UnitsApi", "Building Euro (cm, m², m³)") , false, UnitSystem::Metric,
     {
+        { "Angle", {
+            { 0              , q("Degree")                    }}
+        },
         { "Length", {
             { 0              , q("CentiMetre")               }}
         },
@@ -576,8 +583,11 @@ inline const UnitsSchemaSpec s5
 };
 
 inline const UnitsSchemaSpec s6
-{ 8, "FEM", "mm", false , false , QT_TRANSLATE_NOOP("UnitsApi", "FEM (mm, N, s)"), false,
+{ 8, "FEM", "mm", false , false , QT_TRANSLATE_NOOP("UnitsApi", "FEM (mm, N, s)"), false, UnitSystem::Metric,
     {
+        { "Angle", {
+            { 0             , q("Degree")                     }}
+        },
         { "Length", {
             { 0             , q("MilliMetre")                }}
         },
@@ -588,7 +598,7 @@ inline const UnitsSchemaSpec s6
 };
 
 inline const UnitsSchemaSpec s7
-{ 2, "Imperial", "in", false, false, QT_TRANSLATE_NOOP("UnitsApi", "US customary (in, lb)"), false,
+{ 2, "Imperial", "in", false, false, QT_TRANSLATE_NOOP("UnitsApi", "US customary (in, lb)"), false, UnitSystem::Imperial,
     {
         { "Length", {
             { 0.00000254      , q("Inch")                    },
@@ -626,7 +636,7 @@ inline const UnitsSchemaSpec s7
 };
 
 inline const UnitsSchemaSpec s8
-{ 5, "ImperialBuilding", "ft", true, false , QT_TRANSLATE_NOOP("UnitsApi", "Building US (ft-in, sqft, cft)"), false,
+{ 5, "ImperialBuilding", "ft", true, false , QT_TRANSLATE_NOOP("UnitsApi", "Building US (ft-in, sqft, cft)"), false, UnitSystem::Imperial,
     {
         { "Length"   , {{ 0   , nullptr, "toFractional"          }}},
         { "Angle"    , {{ 0   , q("Degree")                      }}},
@@ -637,7 +647,7 @@ inline const UnitsSchemaSpec s8
 };
 
 inline const UnitsSchemaSpec s9
-{ 7, "ImperialCivil", "ft", false, true, QT_TRANSLATE_NOOP("UnitsApi", "Imperial for Civil Eng (ft, lb, mph)"), false,
+{ 7, "ImperialCivil", "ft", false, true, QT_TRANSLATE_NOOP("UnitsApi", "Imperial for Civil Eng (ft, lb, mph)"), false, UnitSystem::Imperial,
     {
         { "Length"   , {{ 0   , q("Foot")                        }}},
         { "Area"     , {{ 0   , q("SquareFoot2")                 }}},
@@ -759,7 +769,7 @@ inline const std::map<std::string, std::function<std::string(double, std::size_t
         { "toDMS"        , [](const double val, [[maybe_unused]] const std::size_t precision, [[maybe_unused]] const std::size_t denominator,
                               double& factor, std::string& unitString) {
             factor = 1.0;
-            unitString = "deg";
+            unitString = "\xC2\xB0";  // ° (degree symbol, matching QuantitySpec)
             return toDms(val);
         }},
         { "toFractional" , [](const double val, [[maybe_unused]] const std::size_t precision, const std::size_t denominator,

@@ -25,6 +25,7 @@
 #include "Base/Unit.h"
 #include "Base/Quantity.h"
 #include "Base/UnitsApi.h"
+#include "Base/QuantitySpecsData.h"
 #include "Base/UnitsSchemasData.h"
 #include "Base/UnitsSchemas.h"
 
@@ -1281,4 +1282,47 @@ TEST_F(SchemaTest, sweep_meter_decimal)
         {"1 V", "10 V", "100 V"},
         {"1 m/s", "10 m/s", "100 m/s"},
     });
+}
+
+// For every unit type that appears in the measure dropdown mapping, verify that
+// schemaTranslate returns a unit string matching a registry entry symbol.
+// This ensures the dropdown can always auto-select the schema's preferred unit.
+TEST_F(SchemaTest, schema_unit_string_matches_registry_symbol)
+{
+    using Base::QuantitySpecsData::findByUnit;
+
+    // The (unit, test value) pairs corresponding to the measure dropdown mapping
+    const std::vector<std::pair<Unit, double>> measureUnits = {
+        {Unit::Length, 100.0},  // 100 mm
+        {Unit::Angle, 90.0},    // 90 degrees
+        {Unit::Area, 1e4},      // 1 cm²
+    };
+
+    for (size_t schemaIdx = 0; schemaIdx < UnitsApi::count(); ++schemaIdx) {
+        UnitsApi::setSchema(schemaIdx);
+
+        for (const auto& [unit, value] : measureUnits) {
+            SCOPED_TRACE(
+                "Schema " + std::to_string(schemaIdx) + ", unit type: " + unit.getTypeString()
+            );
+
+            // Get all registry symbols for this unit
+            auto specs = findByUnit(unit);
+            std::vector<std::string> symbols;
+            for (const auto* spec : specs) {
+                symbols.emplace_back(spec->symbol);
+            }
+
+            // Translate a quantity with this unit
+            Quantity quant {value, unit};
+            double factor {};
+            std::string unitString;
+            UnitsApi::schemaTranslate(quant, factor, unitString);
+
+            EXPECT_FALSE(unitString.empty()) << "schemaTranslate returned empty unit string";
+            EXPECT_NE(std::find(symbols.begin(), symbols.end(), unitString), symbols.end())
+                << "schemaTranslate unit string \"" << unitString
+                << "\" not found in registry entries for " << unit.getTypeString();
+        }
+    }
 }

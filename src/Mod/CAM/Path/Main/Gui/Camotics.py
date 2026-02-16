@@ -273,7 +273,7 @@ class CamoticsSimulation(QtCore.QObject):
             "files": [],
         }
 
-        unitstring = "imperial" if FreeCAD.Units.getSchema() in [2, 3, 5, 7] else "metric"
+        unitstring = FreeCAD.Units.getUnitSystem().lower()
 
         camoticstemplate["units"] = unitstring
         camoticstemplate["resolution-mode"] = "medium"

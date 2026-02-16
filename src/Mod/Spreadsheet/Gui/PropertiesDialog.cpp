@@ -23,10 +23,14 @@
  ***************************************************************************/
 
 
+#include <array>
+
 #include <App/Document.h>
 #include <App/ExpressionParser.h>
 #include <App/Range.h>
+#include <Base/QuantitySpecsData.h>
 #include <Base/Tools.h>
+#include <Base/UnitsApi.h>
 #include <Gui/CommandT.h>
 
 #include "PropertiesDialog.h"
@@ -63,6 +67,10 @@ PropertiesDialog::PropertiesDialog(Sheet* _sheet, const std::vector<Range>& _ran
     (void)cell->getStyle(style);
     (void)cell->getDisplayUnit(displayUnit);
     (void)cell->getAlias(alias);
+
+    Base::Unit computedUnit;
+    cell->getComputedUnit(computedUnit);
+    populateUnitDropdown(computedUnit);
 
     orgForegroundColor = foregroundColor;
     orgBackgroundColor = backgroundColor;
@@ -108,7 +116,7 @@ PropertiesDialog::PropertiesDialog(Sheet* _sheet, const std::vector<Range>& _ran
         ui->styleUnderline->setChecked(true);
     }
 
-    ui->displayUnit->setText(QString::fromStdString(displayUnit.stringRep));
+    ui->displayUnit->setCurrentText(QString::fromStdString(displayUnit.stringRep));
 
     ui->alias->setText(QString::fromStdString(alias));
 
@@ -140,7 +148,7 @@ PropertiesDialog::PropertiesDialog(Sheet* _sheet, const std::vector<Range>& _ran
     connect(ui->styleUnderline, &QCheckBox::clicked, this, &PropertiesDialog::styleChanged);
 
     // Display unit
-    connect(ui->displayUnit, &QLineEdit::textEdited, this, &PropertiesDialog::displayUnitChanged);
+    connect(ui->displayUnit, &QComboBox::editTextChanged, this, &PropertiesDialog::displayUnitChanged);
 
     // Alias is only allowed for a single cell
     ui->tabWidget->widget(4)->setEnabled(_ranges.size() == 1 && _ranges[0].size() == 1);
@@ -220,7 +228,7 @@ void PropertiesDialog::displayUnitChanged(const QString& text)
         return;
     }
 
-    QPalette palette = ui->displayUnit->palette();
+    QPalette palette = ui->displayUnit->lineEdit()->palette();
     try {
         std::unique_ptr<UnitExpression> expr(
             App::ExpressionParser::parseUnit(sheet, text.toUtf8().constData())
@@ -243,7 +251,7 @@ void PropertiesDialog::displayUnitChanged(const QString& text)
         displayUnitOk = false;
     }
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(displayUnitOk && aliasOk);
-    ui->displayUnit->setPalette(palette);
+    ui->displayUnit->lineEdit()->setPalette(palette);
 }
 
 void PropertiesDialog::aliasChanged(const QString& text)
@@ -256,6 +264,48 @@ void PropertiesDialog::aliasChanged(const QString& text)
     palette.setColor(QPalette::Text, aliasOk ? Qt::black : Qt::red);
     ui->alias->setPalette(palette);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(displayUnitOk && aliasOk);
+}
+
+void PropertiesDialog::populateUnitDropdown(const Base::Unit& unit)
+{
+    if (unit == Base::Unit() || unit == Base::Unit::One) {
+        return;
+    }
+
+    auto specs = Base::QuantitySpecsData::findByUnit(unit);
+    auto preferred = Base::UnitsApi::getUnitSystem();
+    auto other = (preferred == Base::UnitSystem::Metric) ? Base::UnitSystem::Imperial
+                                                         : Base::UnitSystem::Metric;
+
+    constexpr auto excludedSpecs = std::to_array<std::string_view>({
+        "InchMark",
+        "FootMark",
+        "SquareFoot",
+        "CubicFoot",
+        "AngMinute",
+        "AngSecond",
+    });
+
+    auto addSpecs = [&](Base::UnitSystem sys) {
+        for (const auto* spec : specs) {
+            if (spec->unitSystem != sys) {
+                continue;
+            }
+            if (std::ranges::find(excludedSpecs, spec->name) != excludedSpecs.end()) {
+                continue;
+            }
+            ui->displayUnit->addItem(
+                QString::fromUtf8(spec->symbol.data(), static_cast<int>(spec->symbol.size()))
+            );
+        }
+    };
+
+    addSpecs(preferred);
+    int countBefore = ui->displayUnit->count();
+    addSpecs(other);
+    if (ui->displayUnit->count() > countBefore) {
+        ui->displayUnit->insertSeparator(countBefore);
+    }
 }
 
 PropertiesDialog::~PropertiesDialog()

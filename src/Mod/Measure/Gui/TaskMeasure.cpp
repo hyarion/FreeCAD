@@ -32,6 +32,7 @@
 #include <App/Link.h>
 #include <Mod/Measure/App/MeasureDistance.h>
 #include <App/PropertyStandard.h>
+#include <App/PropertyUnits.h>
 #include <Gui/MainWindow.h>
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
@@ -49,6 +50,8 @@
 #include <QSignalBlocker>
 
 #include <Base/Quantity.h>
+#include <Base/QuantitySpecsData.h>
+#include <Base/UnitsApi.h>
 #include <array>
 
 using namespace MeasureGui;
@@ -62,35 +65,41 @@ constexpr auto taskMeasureGreedySelection = "GreedySelection";
 
 using SelectionStyle = Gui::SelectionSingleton::SelectionStyle;
 
-constexpr std::array
-    lengthUnitLabels {"nm", "µm", "mm", "cm", "dm", "m", "km", "in", "ft", "thou", "yd", "mi"};
-
-constexpr std::array angleUnitLabels {"deg", "rad", "gon"};
-
-constexpr std::array areaUnitLabels {"mm²", "cm²", "m²", "km²", "in²", "ft²", "yd²", "mi²"};
-
-template<std::size_t N>
-QStringList toQStringList(const std::array<const char*, N>& strings)
+struct MeasureUnitMapping
 {
-    QStringList result;
-    result.reserve(N);
-    for (const char* s : strings) {
-        result.append(QString::fromUtf8(s));
-    }
-    return result;
+    std::string_view id;
+    Base::Unit unit;
+};
+
+constexpr auto measureUnitMap = std::to_array<MeasureUnitMapping>({
+    {"LENGTH", Base::Unit::Length},
+    {"DISTANCE", Base::Unit::Length},
+    {"DISTANCEFREE", Base::Unit::Length},
+    {"RADIUS", Base::Unit::Length},
+    {"DIAMETER", Base::Unit::Length},
+    {"POSITION", Base::Unit::Length},
+    {"CENTEROFMASS", Base::Unit::Length},
+    {"ANGLE", Base::Unit::Angle},
+    {"AREA", Base::Unit::Area},
+});
+
+constexpr auto excludedSpecs = std::to_array<std::string_view>({
+    "InchMark",    // alias for Inch (" symbol)
+    "FootMark",    // alias for Foot (' symbol)
+    "SquareFoot",  // prefer ft^2 which prettifies to ft²
+    "CubicFoot",   // prefer ft^3 which prettifies to ft³
+    "AngMinute",   // ' symbol, ambiguous in dropdown
+    "AngSecond",   // " symbol, ambiguous in dropdown
+});
+
+QString prettifySymbol(std::string_view symbol)
+{
+    QString s = QString::fromUtf8(symbol.data(), static_cast<int>(symbol.size()));
+    s.replace(QLatin1String("^2"), QString::fromUtf8("\xC2\xB2"));
+    s.replace(QLatin1String("^3"), QString::fromUtf8("\xC2\xB3"));
+    return s;
 }
 
-QString extractUnitFromResultString(const QString& resultString)
-{
-    std::string str = resultString.toStdString();
-    auto lastSpace = str.find_last_of(' ');
-
-    if (lastSpace != std::string::npos && lastSpace < str.length() - 1) {
-        return QString::fromStdString(str.substr(lastSpace + 1));
-    }
-
-    return QString();
-}
 }  // namespace
 
 TaskMeasure::TaskMeasure()
@@ -404,37 +413,51 @@ void TaskMeasure::tryUpdate()
 
 void TaskMeasure::updateUnitDropdown(const App::MeasureType* measureType)
 {
-    const QString previousUnit = unitSwitch->currentText();
-    QStringList units;
+    auto it = std::ranges::find(measureUnitMap, measureType->identifier, &MeasureUnitMapping::id);
+    QSignalBlocker blocker(unitSwitch);
+    const QString prev = unitSwitch->currentText();
+    unitSwitch->clear();
 
-    if (measureType->identifier == "LENGTH" || measureType->identifier == "DISTANCE"
-        || measureType->identifier == "DISTANCEFREE" || measureType->identifier == "RADIUS"
-        || measureType->identifier == "DIAMETER" || measureType->identifier == "POSITION"
-        || measureType->identifier == "CENTEROFMASS") {
-        units = toQStringList(lengthUnitLabels);
+    if (it == std::ranges::end(measureUnitMap)) {
+        unitSwitch->addItem(QLatin1String("-"));
+        return;
     }
-    else if (measureType->identifier == "ANGLE") {
-        units = toQStringList(angleUnitLabels);
+
+    auto allSpecs = Base::QuantitySpecsData::findByUnit(it->unit);
+
+    auto preferred = Base::UnitsApi::getUnitSystem();
+    auto other = (preferred == Base::UnitSystem::Metric) ? Base::UnitSystem::Imperial
+                                                         : Base::UnitSystem::Metric;
+
+    auto addSpecsForSystem = [&](Base::UnitSystem sys) {
+        for (const auto* spec : allSpecs) {
+            if (spec->unitSystem != sys) {
+                continue;
+            }
+            if (std::ranges::find(excludedSpecs, spec->name) != excludedSpecs.end()) {
+                continue;
+            }
+            unitSwitch->addItem(
+                prettifySymbol(spec->symbol),
+                QString::fromUtf8(spec->symbol.data(), static_cast<int>(spec->symbol.size()))
+            );
+        }
+    };
+
+    addSpecsForSystem(preferred);
+    int countBefore = unitSwitch->count();
+    addSpecsForSystem(other);
+    if (unitSwitch->count() > countBefore) {
+        unitSwitch->insertSeparator(countBefore);
     }
-    else if (measureType->identifier == "AREA") {
-        units = toQStringList(areaUnitLabels);
+
+    if (int idx = unitSwitch->findText(prev); idx >= 0) {
+        unitSwitch->setCurrentIndex(idx);
     }
     else {
-        units.clear();
-    }
-
-    QSignalBlocker unitSwitchBlocker(unitSwitch);
-
-    unitSwitch->clear();
-    if (!units.isEmpty()) {
-        unitSwitch->addItems(units);
-        // If unit from the same category was previously selected keep it
-        if (!previousUnit.isEmpty()) {
-            int unitIndex = unitSwitch->findText(previousUnit);
-            if (unitIndex >= 0) {
-                unitSwitch->setCurrentIndex(unitIndex);
-            }
-        }
+        // Previous unit not found (measurement type changed) — allow
+        // setUnitFromResultString() to pick the schema's preferred unit.
+        mLastUnitSelection = QLatin1String("-");
     }
 }
 
@@ -449,19 +472,39 @@ void TaskMeasure::setUnitFromResultString()
         return;
     }
 
-    QString resultString = _mMeasureObject->getResultString();
-    QString unitFromResult = extractUnitFromResultString(resultString);
-
-    if (unitFromResult.isEmpty()) {
+    // Get the schema's preferred unit string directly from schemaTranslate,
+    // rather than parsing it back out of the formatted result string.
+    // This handles angle symbols like "°" that have no space separator.
+    App::Property* prop = _mMeasureObject->getResultProp();
+    if (!prop || !prop->isDerivedFrom<App::PropertyQuantity>()) {
         return;
     }
 
-    int unitIndex = unitSwitch->findText(unitFromResult);
+    double factor {};
+    std::string unitString;
+    Base::UnitsApi::schemaTranslate(
+        static_cast<App::PropertyQuantity*>(prop)->getQuantityValue(),
+        factor,
+        unitString
+    );
+
+    if (unitString.empty()) {
+        return;
+    }
+
+    QString unitFromSchema = QString::fromUtf8(unitString.c_str());
+
+    // Try matching against display text (handles prettified output like "mm²")
+    int unitIndex = unitSwitch->findText(unitFromSchema);
+    if (unitIndex < 0) {
+        // Try matching against stored parse symbols (handles raw output like "mm^2")
+        unitIndex = unitSwitch->findData(unitFromSchema);
+    }
     if (unitIndex >= 0) {
         QSignalBlocker unitSwitchBlocker(unitSwitch);
         unitSwitch->setCurrentIndex(unitIndex);
 
-        mLastUnitSelection = unitFromResult;
+        mLastUnitSelection = unitSwitch->currentText();
     }
 }
 
@@ -472,18 +515,18 @@ void TaskMeasure::updateResultWithUnit()
     }
 
     QString resultString = _mMeasureObject->getResultString();
-    QString currentUnit = unitSwitch->currentText();
+    QString parseSymbol = unitSwitch->currentData().toString();
+    QString displaySymbol = unitSwitch->currentText();
 
-    if (currentUnit != QLatin1String("-") && !resultString.isEmpty()) {
+    if (!parseSymbol.isEmpty() && !resultString.isEmpty()) {
         Base::Quantity resultQty = Base::Quantity::parse(resultString.toStdString());
         // Parse unit string like "1 mm" to get the target quantity
         Base::Quantity targetUnit = Base::Quantity::parse(
-            (QLatin1String("1 ") + currentUnit).toStdString()
+            (QLatin1String("1 ") + parseSymbol).toStdString()
         );
         double convertedValue = resultQty.getValueAs(targetUnit);
 
         QString formattedValue;
-        // 4 decimal places, if between -1 and 1: 4 significant digits
         if (std::abs(convertedValue) < 1.0 && convertedValue != 0.0) {
             formattedValue = QString::number(convertedValue, 'g', 4);
         }
@@ -491,7 +534,7 @@ void TaskMeasure::updateResultWithUnit()
             formattedValue = QString::number(convertedValue, 'f', 4);
         }
 
-        QString formattedResult = formattedValue + QLatin1String(" ") + currentUnit;
+        QString formattedResult = formattedValue + QLatin1String(" ") + displaySymbol;
         valueResult->setText(formattedResult);
     }
     else {

@@ -10,6 +10,7 @@ using Base::Quantity;
 using Base::QuantitySpec;
 using Base::Unit;
 using Base::UnitsMismatchError;
+using Base::UnitSystem;
 
 
 TEST(BaseQuantity, TestValid)
@@ -354,4 +355,86 @@ TEST(BaseQuantityRegistry, consistencyWithStaticConstants)
     check(Quantity::Tesla, "Tesla");
     check(Quantity::Farad, "Farad");
     check(Quantity::Henry, "Henry");
+}
+
+// === UnitSystem tagging tests ===
+
+TEST(BaseQuantityRegistry, imperialEntriesTagged)
+{
+    const std::array imperialNames = {
+        "Inch",
+        "Foot",
+        "Thou",
+        "Yard",
+        "Mile",
+        "InchMark",
+        "FootMark",
+        "SquareInch",
+        "SquareFoot",
+        "SquareFoot2",
+        "CubicInch",
+        "CubicFoot",
+        "CubicFoot2",
+        "Pound",
+        "Ounce",
+        "Stone",
+        "Hundredweights",
+        "MilePerHour",
+        "MPH",
+        "InchPerMinute",
+        "InchPerMinuteSquared",
+        "PoundForce",
+        "PoundForcePerInch",
+        "PSI",
+        "KSI",
+        "MPSI",
+        "FootPound",
+    };
+
+    for (const auto& name : imperialNames) {
+        const auto* spec = Base::QuantitySpecsData::findByName(name);
+        ASSERT_NE(spec, nullptr) << "Missing spec for " << name;
+        EXPECT_EQ(spec->unitSystem, UnitSystem::Imperial) << name << " should be Imperial";
+    }
+}
+
+TEST(BaseQuantityRegistry, metricEntriesTagged)
+{
+    const std::array metricNames = {
+        "MilliMetre",
+        "Metre",
+        "KiloMetre",
+        "KiloGram",
+        "Newton",
+        "Pascal",
+        "Watt",
+        "Volt",
+        "Joule",
+        "Degree",
+        "Bar",
+        "Tesla",
+    };
+
+    for (const auto& name : metricNames) {
+        const auto* spec = Base::QuantitySpecsData::findByName(name);
+        ASSERT_NE(spec, nullptr) << "Missing spec for " << name;
+        EXPECT_EQ(spec->unitSystem, UnitSystem::Metric) << name << " should be Metric";
+    }
+}
+
+TEST(BaseQuantityRegistry, findByUnitReturnsBothSystems)
+{
+    auto lengths = Base::QuantitySpecsData::findByUnit(Unit::Length);
+    bool hasMetric = false;
+    bool hasImperial = false;
+    for (const auto* spec : lengths) {
+        if (spec->unitSystem == UnitSystem::Metric) {
+            hasMetric = true;
+        }
+        if (spec->unitSystem == UnitSystem::Imperial) {
+            hasImperial = true;
+        }
+    }
+    EXPECT_TRUE(hasMetric) << "Length should have metric entries";
+    EXPECT_TRUE(hasImperial) << "Length should have imperial entries";
 }

@@ -79,13 +79,13 @@ PyMethodDef UnitsApi::Methods[] = {
      "predefinedQuantities([unit]) -> list of dicts\n\n"
      "Returns predefined quantities. If a Unit is given, returns only\n"
      "quantities matching that unit dimension. Each dict has keys:\n"
-     "'name', 'symbol', 'value', 'unit'."},
+     "'name', 'symbol', 'value', 'unit', 'system'."},
     {"findPredefined",
      sFindPredefined,
      METH_VARARGS,
      "findPredefined(name) -> dict or None\n\n"
      "Looks up a predefined quantity by name. Returns a dict with keys:\n"
-     "'name', 'symbol', 'value', 'unit', or None if not found."},
+     "'name', 'symbol', 'value', 'unit', 'system', or None if not found."},
     {"predefinedUnits",
      sPredefinedUnits,
      METH_NOARGS,
@@ -250,6 +250,7 @@ PyObject* specToDict(const QuantitySpec& spec)
     dict.setItem("symbol", Py::String(std::string(spec.symbol)));
     dict.setItem("value", Py::Float(spec.value));
     dict.setItem("unit", Py::asObject(new UnitPy(new Unit(spec.unit))));
+    dict.setItem("system", Py::String(spec.unitSystem == UnitSystem::Imperial ? "Imperial" : "Metric"));
     return Py::new_reference_to(dict);
 }
 }  // namespace

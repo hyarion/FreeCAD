@@ -86,6 +86,8 @@ protected:
     static PyObject* sSetSchema(PyObject* self, PyObject* args);
     static PyObject* sSchemaTranslate(PyObject* self, PyObject* args);
     static PyObject* sToNumber(PyObject* self, PyObject* args);
+    static PyObject* sPredefinedQuantities(PyObject* self, PyObject* args);
+    static PyObject* sFindPredefined(PyObject* self, PyObject* args);
 };
 
 }  // namespace Base

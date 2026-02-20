@@ -26,6 +26,7 @@
 #pragma once
 
 #include "Unit.h"
+#include "QuantitySpecsData.h"
 #include <string>
 
 namespace Base

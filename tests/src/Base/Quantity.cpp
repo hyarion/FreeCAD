@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
 #include <Base/Exception.h>
 #include <Base/Quantity.h>
+#include <Base/QuantitySpecsData.h>
 #include "Base/UnitsApi.h"
 #include <QLocale>
 
 using Base::ParserError;
 using Base::Quantity;
+using Base::QuantitySpec;
 using Base::Unit;
 using Base::UnitsMismatchError;
 
@@ -277,4 +279,79 @@ TEST_F(BaseQuantityLoc, voltage_val_smaller)
     const auto qq = Quantity::parse("1e3 V");
 
     EXPECT_EQ(qq.getValue(), 1e+9);
+}
+
+// === Predefined quantity registry tests ===
+
+TEST(BaseQuantityRegistry, predefinedQuantitiesLength)
+{
+    auto results = Base::QuantitySpecsData::findByUnit(Unit::Length);
+    EXPECT_FALSE(results.empty());
+    for (const auto* spec : results) {
+        EXPECT_EQ(spec->unit, Unit::Length);
+    }
+}
+
+TEST(BaseQuantityRegistry, predefinedQuantitiesMass)
+{
+    auto results = Base::QuantitySpecsData::findByUnit(Unit::Mass);
+    EXPECT_FALSE(results.empty());
+    for (const auto* spec : results) {
+        EXPECT_EQ(spec->unit, Unit::Mass);
+    }
+}
+
+TEST(BaseQuantityRegistry, findPredefinedMilliMetre)
+{
+    const auto* spec = Base::QuantitySpecsData::findByName("MilliMetre");
+    ASSERT_NE(spec, nullptr);
+    EXPECT_EQ(spec->name, "MilliMetre");
+    EXPECT_EQ(spec->symbol, "mm");
+    EXPECT_EQ(spec->value, 1.0);
+    EXPECT_EQ(spec->unit, Unit::Length);
+}
+
+TEST(BaseQuantityRegistry, findPredefinedNonexistent)
+{
+    const auto* spec = Base::QuantitySpecsData::findByName("nonexistent");
+    EXPECT_EQ(spec, nullptr);
+}
+
+TEST(BaseQuantityRegistry, predefinedQuantitiesAll)
+{
+    auto all = Base::QuantitySpecsData::all();
+    EXPECT_EQ(all.size(), Base::QuantitySpecsData::specs.size());
+}
+
+TEST(BaseQuantityRegistry, consistencyWithStaticConstants)
+{
+    // Verify a representative set of static constants match the data table
+    auto check = [](const Quantity& q, std::string_view name) {
+        const auto* spec = Base::QuantitySpecsData::findByName(name);
+        ASSERT_NE(spec, nullptr) << "Missing spec for " << name;
+        EXPECT_EQ(q.getValue(), spec->value) << "Value mismatch for " << name;
+        EXPECT_EQ(q.getUnit(), spec->unit) << "Unit mismatch for " << name;
+    };
+
+    check(Quantity::MilliMetre, "MilliMetre");
+    check(Quantity::Metre, "Metre");
+    check(Quantity::Inch, "Inch");
+    check(Quantity::KiloGram, "KiloGram");
+    check(Quantity::Second, "Second");
+    check(Quantity::Ampere, "Ampere");
+    check(Quantity::Kelvin, "Kelvin");
+    check(Quantity::Mole, "Mole");
+    check(Quantity::Candela, "Candela");
+    check(Quantity::Newton, "Newton");
+    check(Quantity::Pascal, "Pascal");
+    check(Quantity::Watt, "Watt");
+    check(Quantity::Volt, "Volt");
+    check(Quantity::Ohm, "Ohm");
+    check(Quantity::Joule, "Joule");
+    check(Quantity::Degree, "Degree");
+    check(Quantity::PSI, "PSI");
+    check(Quantity::Bar, "Bar");
+    check(Quantity::Tesla, "Tesla");
+    check(Quantity::Farad, "Farad");
+    check(Quantity::Henry, "Henry");
 }

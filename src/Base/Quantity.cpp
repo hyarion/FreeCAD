@@ -22,10 +22,12 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <limits>
 #include <numbers>
+#include <ranges>
 #include <sstream>
 #include <string>
 
@@ -33,6 +35,7 @@
 
 #include "Exception.h"
 #include "Quantity.h"
+#include "QuantitySpecsData.h"
 #include "Tools.h"
 #include "UnitsApi.h"
 #include "UnitsConvData.h"
@@ -311,155 +314,168 @@ void Quantity::setInvalid()
     myValue = std::numeric_limits<double>::quiet_NaN();
 }
 
-// === Predefined types =====================================================
+// === Predefined types (derived from QuantitySpecsData) ====================
+
+namespace
+{
+constexpr Quantity fromSpec(std::string_view name)
+{
+    const auto& specs = Base::QuantitySpecsData::specs;
+    auto it = std::ranges::find(specs, name, &Base::QuantitySpec::name);
+    return Quantity {it->value, it->unit};
+}
+}  // namespace
+
 // clang-format off
-using namespace Base::UnitsConvData;
+#define QUANTITY_BY_NAME(name) Quantity::name = fromSpec(#name)
 
-constexpr Quantity Quantity::NanoMetre           ( 1.0e-6                , Unit::Length                  );
-constexpr Quantity Quantity::MicroMetre          ( 1.0e-3                , Unit::Length                  );
-constexpr Quantity Quantity::MilliMetre          ( 1.0                   , Unit::Length                  );
-constexpr Quantity Quantity::CentiMetre          ( 10.0                  , Unit::Length                  );
-constexpr Quantity Quantity::DeciMetre           ( 100.0                 , Unit::Length                  );
-constexpr Quantity Quantity::Metre               ( 1.0e3                 , Unit::Length                  );
-constexpr Quantity Quantity::KiloMetre           ( 1.0e6                 , Unit::Length                  );
+constexpr Quantity QUANTITY_BY_NAME(NanoMetre);
+constexpr Quantity QUANTITY_BY_NAME(MicroMetre);
+constexpr Quantity QUANTITY_BY_NAME(MilliMetre);
+constexpr Quantity QUANTITY_BY_NAME(CentiMetre);
+constexpr Quantity QUANTITY_BY_NAME(DeciMetre);
+constexpr Quantity QUANTITY_BY_NAME(Metre);
+constexpr Quantity QUANTITY_BY_NAME(KiloMetre);
 
-constexpr Quantity Quantity::MilliLiter          ( 1000.0                , Unit::Volume                  );
-constexpr Quantity Quantity::Liter               ( 1.0e6                 , Unit::Volume                  );
+constexpr Quantity QUANTITY_BY_NAME(MilliLiter);
+constexpr Quantity QUANTITY_BY_NAME(Liter);
 
-constexpr Quantity Quantity::Hertz               ( 1.0                   , Unit::Frequency               );
-constexpr Quantity Quantity::KiloHertz           ( 1.0e3                 , Unit::Frequency               );
-constexpr Quantity Quantity::MegaHertz           ( 1.0e6                 , Unit::Frequency               );
-constexpr Quantity Quantity::GigaHertz           ( 1.0e9                 , Unit::Frequency               );
-constexpr Quantity Quantity::TeraHertz           ( 1.0e12                , Unit::Frequency               );
+constexpr Quantity QUANTITY_BY_NAME(Hertz);
+constexpr Quantity QUANTITY_BY_NAME(KiloHertz);
+constexpr Quantity QUANTITY_BY_NAME(MegaHertz);
+constexpr Quantity QUANTITY_BY_NAME(GigaHertz);
+constexpr Quantity QUANTITY_BY_NAME(TeraHertz);
 
-constexpr Quantity Quantity::MicroGram           ( 1.0e-9                , Unit::Mass                    );
-constexpr Quantity Quantity::MilliGram           ( 1.0e-6                , Unit::Mass                    );
-constexpr Quantity Quantity::Gram                ( 1.0e-3                , Unit::Mass                    );
-constexpr Quantity Quantity::KiloGram            ( 1.0                   , Unit::Mass                    );
-constexpr Quantity Quantity::Ton                 ( 1.0e3                 , Unit::Mass                    );
+constexpr Quantity QUANTITY_BY_NAME(MicroGram);
+constexpr Quantity QUANTITY_BY_NAME(MilliGram);
+constexpr Quantity QUANTITY_BY_NAME(Gram);
+constexpr Quantity QUANTITY_BY_NAME(KiloGram);
+constexpr Quantity QUANTITY_BY_NAME(Ton);
 
-constexpr Quantity Quantity::Second              ( 1.0                   , Unit::TimeSpan                );
-constexpr Quantity Quantity::Minute              ( 60.0                  , Unit::TimeSpan                );
-constexpr Quantity Quantity::Hour                ( 3600.0                , Unit::TimeSpan                );
+constexpr Quantity QUANTITY_BY_NAME(Second);
+constexpr Quantity QUANTITY_BY_NAME(Minute);
+constexpr Quantity QUANTITY_BY_NAME(Hour);
 
-constexpr Quantity Quantity::Ampere              ( 1.0                   , Unit::ElectricCurrent         );
-constexpr Quantity Quantity::MilliAmpere         ( 0.001                 , Unit::ElectricCurrent         );
-constexpr Quantity Quantity::KiloAmpere          ( 1000.0                , Unit::ElectricCurrent         );
-constexpr Quantity Quantity::MegaAmpere          ( 1.0e6                 , Unit::ElectricCurrent         );
+constexpr Quantity QUANTITY_BY_NAME(Ampere);
+constexpr Quantity QUANTITY_BY_NAME(MilliAmpere);
+constexpr Quantity QUANTITY_BY_NAME(KiloAmpere);
+constexpr Quantity QUANTITY_BY_NAME(MegaAmpere);
 
-constexpr Quantity Quantity::Kelvin              ( 1.0                   , Unit::Temperature             );
-constexpr Quantity Quantity::MilliKelvin         ( 0.001                 , Unit::Temperature             );
-constexpr Quantity Quantity::MicroKelvin         ( 0.000001              , Unit::Temperature             );
+constexpr Quantity QUANTITY_BY_NAME(Kelvin);
+constexpr Quantity QUANTITY_BY_NAME(MilliKelvin);
+constexpr Quantity QUANTITY_BY_NAME(MicroKelvin);
 
-constexpr Quantity Quantity::MilliMole           ( 0.001                 , Unit::AmountOfSubstance       );
-constexpr Quantity Quantity::Mole                ( 1.0                   , Unit::AmountOfSubstance       );
+constexpr Quantity QUANTITY_BY_NAME(MilliMole);
+constexpr Quantity QUANTITY_BY_NAME(Mole);
 
-constexpr Quantity Quantity::Candela             ( 1.0                   , Unit::LuminousIntensity       );
+constexpr Quantity QUANTITY_BY_NAME(Candela);
 
-constexpr Quantity Quantity::Inch                ( in                    , Unit::Length                  );
-constexpr Quantity Quantity::Foot                ( ft                    , Unit::Length                  );
-constexpr Quantity Quantity::Thou                ( in / 1000             , Unit::Length                  );
-constexpr Quantity Quantity::Yard                ( yd                    , Unit::Length                  );
-constexpr Quantity Quantity::Mile                ( mi                    , Unit::Length                  );
+constexpr Quantity QUANTITY_BY_NAME(Inch);
+constexpr Quantity QUANTITY_BY_NAME(Foot);
+constexpr Quantity QUANTITY_BY_NAME(Thou);
+constexpr Quantity QUANTITY_BY_NAME(Yard);
+constexpr Quantity QUANTITY_BY_NAME(Mile);
 
-constexpr Quantity Quantity::MilePerHour         ( mi / 3600             , Unit::Velocity                );
+constexpr Quantity QUANTITY_BY_NAME(MilePerHour);
 
-constexpr Quantity Quantity::SquareFoot          ( ft * ft               , Unit::Area                    );
-constexpr Quantity Quantity::CubicFoot           ( ft * ft * ft          , Unit::Volume                  );
+constexpr Quantity QUANTITY_BY_NAME(SquareFoot);
+constexpr Quantity QUANTITY_BY_NAME(CubicFoot);
 
-constexpr Quantity Quantity::Pound               ( lb                    , Unit::Mass                    );
-constexpr Quantity Quantity::Ounce               ( lb / 16               , Unit::Mass                    );
-constexpr Quantity Quantity::Stone               ( lb * 14               , Unit::Mass                    );
-constexpr Quantity Quantity::Hundredweights      ( lb * 112              , Unit::Mass                    );
+constexpr Quantity QUANTITY_BY_NAME(Pound);
+constexpr Quantity QUANTITY_BY_NAME(Ounce);
+constexpr Quantity QUANTITY_BY_NAME(Stone);
+constexpr Quantity QUANTITY_BY_NAME(Hundredweights);
 
-constexpr Quantity Quantity::PoundForce          ( 1000 * lbf            , Unit::Force                   );
+constexpr Quantity QUANTITY_BY_NAME(PoundForce);
 
-constexpr Quantity Quantity::Newton              ( 1000.0                , Unit::Force                   );
-constexpr Quantity Quantity::MilliNewton         ( 1.0                   , Unit::Force                   );
-constexpr Quantity Quantity::KiloNewton          ( 1e+6                  , Unit::Force                   );
-constexpr Quantity Quantity::MegaNewton          ( 1e+9                  , Unit::Force                   );
+constexpr Quantity QUANTITY_BY_NAME(Newton);
+constexpr Quantity QUANTITY_BY_NAME(MilliNewton);
+constexpr Quantity QUANTITY_BY_NAME(KiloNewton);
+constexpr Quantity QUANTITY_BY_NAME(MegaNewton);
 
-constexpr Quantity Quantity::NewtonPerMeter      ( 1.00                  , Unit::Stiffness               );
-constexpr Quantity Quantity::MilliNewtonPerMeter ( 1e-3                  , Unit::Stiffness               );
-constexpr Quantity Quantity::KiloNewtonPerMeter  ( 1e3                   , Unit::Stiffness               );
-constexpr Quantity Quantity::MegaNewtonPerMeter  ( 1e6                   , Unit::Stiffness               );
+constexpr Quantity QUANTITY_BY_NAME(NewtonPerMeter);
+constexpr Quantity QUANTITY_BY_NAME(MilliNewtonPerMeter);
+constexpr Quantity QUANTITY_BY_NAME(KiloNewtonPerMeter);
+constexpr Quantity QUANTITY_BY_NAME(MegaNewtonPerMeter);
 
-constexpr Quantity Quantity::Pascal              ( 0.001                 , Unit::Pressure                );
-constexpr Quantity Quantity::KiloPascal          ( 1.00                  , Unit::Pressure                );
-constexpr Quantity Quantity::MegaPascal          ( 1000.0                , Unit::Pressure                );
-constexpr Quantity Quantity::GigaPascal          ( 1e+6                  , Unit::Pressure                );
+constexpr Quantity QUANTITY_BY_NAME(Pascal);
+constexpr Quantity QUANTITY_BY_NAME(KiloPascal);
+constexpr Quantity QUANTITY_BY_NAME(MegaPascal);
+constexpr Quantity QUANTITY_BY_NAME(GigaPascal);
 
-constexpr Quantity Quantity::MilliBar            ( 0.1                   , Unit::Pressure                );
-constexpr Quantity Quantity::Bar                 ( 100.0                 , Unit::Pressure                );
+constexpr Quantity QUANTITY_BY_NAME(MilliBar);
+constexpr Quantity QUANTITY_BY_NAME(Bar);
 
-constexpr Quantity Quantity::Torr                ( 101.325 / 760.0       , Unit::Pressure                );
-constexpr Quantity Quantity::mTorr               ( 101.325 / 760.0 / 1e3 , Unit::Pressure                );
-constexpr Quantity Quantity::yTorr               ( 101.325 / 760.0 / 1e6 , Unit::Pressure                );
+constexpr Quantity QUANTITY_BY_NAME(Torr);
+constexpr Quantity QUANTITY_BY_NAME(mTorr);
+constexpr Quantity QUANTITY_BY_NAME(yTorr);
 
-constexpr Quantity Quantity::PSI                 ( psi                   , Unit::Pressure                );
-constexpr Quantity Quantity::KSI                 ( psi * 1000            , Unit::Pressure                );
-constexpr Quantity Quantity::MPSI                ( psi * 1000000         , Unit::Pressure                );
+constexpr Quantity QUANTITY_BY_NAME(PSI);
+constexpr Quantity QUANTITY_BY_NAME(KSI);
+constexpr Quantity QUANTITY_BY_NAME(MPSI);
 
-constexpr Quantity Quantity::Watt                ( 1e+6                  , Unit::Power                   );
-constexpr Quantity Quantity::MilliWatt           ( 1e+3                  , Unit::Power                   );
-constexpr Quantity Quantity::KiloWatt            ( 1e+9                  , Unit::Power                   );
-constexpr Quantity Quantity::VoltAmpere          ( 1e+6                  , Unit::Power                   );
+constexpr Quantity QUANTITY_BY_NAME(Watt);
+constexpr Quantity QUANTITY_BY_NAME(MilliWatt);
+constexpr Quantity QUANTITY_BY_NAME(KiloWatt);
+constexpr Quantity QUANTITY_BY_NAME(VoltAmpere);
 
-constexpr Quantity Quantity::Volt                ( 1e+6                  , Unit::ElectricPotential       );
-constexpr Quantity Quantity::MilliVolt           ( 1e+3                  , Unit::ElectricPotential       );
-constexpr Quantity Quantity::KiloVolt            ( 1e+9                  , Unit::ElectricPotential       );
+constexpr Quantity QUANTITY_BY_NAME(Volt);
+constexpr Quantity QUANTITY_BY_NAME(MilliVolt);
+constexpr Quantity QUANTITY_BY_NAME(KiloVolt);
 
-constexpr Quantity Quantity::MegaSiemens         ( 1.0                   , Unit::ElectricalConductance   );
-constexpr Quantity Quantity::KiloSiemens         ( 1e-3                  , Unit::ElectricalConductance   );
-constexpr Quantity Quantity::Siemens             ( 1e-6                  , Unit::ElectricalConductance   );
-constexpr Quantity Quantity::MilliSiemens        ( 1e-9                  , Unit::ElectricalConductance   );
-constexpr Quantity Quantity::MicroSiemens        ( 1e-12                 , Unit::ElectricalConductance   );
+constexpr Quantity QUANTITY_BY_NAME(MegaSiemens);
+constexpr Quantity QUANTITY_BY_NAME(KiloSiemens);
+constexpr Quantity QUANTITY_BY_NAME(Siemens);
+constexpr Quantity QUANTITY_BY_NAME(MilliSiemens);
+constexpr Quantity QUANTITY_BY_NAME(MicroSiemens);
 
-constexpr Quantity Quantity::Ohm                 ( 1e+6                  , Unit::ElectricalResistance    );
-constexpr Quantity Quantity::KiloOhm             ( 1e+9                  , Unit::ElectricalResistance    );
-constexpr Quantity Quantity::MegaOhm             ( 1e+12                 , Unit::ElectricalResistance    );
+constexpr Quantity QUANTITY_BY_NAME(Ohm);
+constexpr Quantity QUANTITY_BY_NAME(KiloOhm);
+constexpr Quantity QUANTITY_BY_NAME(MegaOhm);
 
-constexpr Quantity Quantity::Coulomb             ( 1.0                   , Unit::ElectricCharge          );
+constexpr Quantity QUANTITY_BY_NAME(Coulomb);
 
-constexpr Quantity Quantity::Tesla               ( 1.0                   , Unit::MagneticFluxDensity     );
-constexpr Quantity Quantity::MilliTesla          ( 1e-3                  , Unit::MagneticFluxDensity     );
-constexpr Quantity Quantity::Gauss               ( 1e-4                  , Unit::MagneticFluxDensity     );
+constexpr Quantity QUANTITY_BY_NAME(Tesla);
+constexpr Quantity QUANTITY_BY_NAME(MilliTesla);
+constexpr Quantity QUANTITY_BY_NAME(Gauss);
 
-constexpr Quantity Quantity::Weber               ( 1e6                   , Unit::MagneticFlux            );
+constexpr Quantity QUANTITY_BY_NAME(Weber);
 
-constexpr Quantity Quantity::PicoFarad           ( 1e-18                 , Unit::ElectricalCapacitance   );
-constexpr Quantity Quantity::NanoFarad           ( 1e-15                 , Unit::ElectricalCapacitance   );
-constexpr Quantity Quantity::MicroFarad          ( 1e-12                 , Unit::ElectricalCapacitance   );
-constexpr Quantity Quantity::MilliFarad          ( 1e-9                  , Unit::ElectricalCapacitance   );
-constexpr Quantity Quantity::Farad               ( 1e-6                  , Unit::ElectricalCapacitance   );
+constexpr Quantity QUANTITY_BY_NAME(PicoFarad);
+constexpr Quantity QUANTITY_BY_NAME(NanoFarad);
+constexpr Quantity QUANTITY_BY_NAME(MicroFarad);
+constexpr Quantity QUANTITY_BY_NAME(MilliFarad);
+constexpr Quantity QUANTITY_BY_NAME(Farad);
 
-constexpr Quantity Quantity::NanoHenry           ( 1e-3                  , Unit::ElectricalInductance    );
-constexpr Quantity Quantity::MicroHenry          ( 1.0                   , Unit::ElectricalInductance    );
-constexpr Quantity Quantity::MilliHenry          ( 1e+3                  , Unit::ElectricalInductance    );
-constexpr Quantity Quantity::Henry               ( 1e+6                  , Unit::ElectricalInductance    );
+constexpr Quantity QUANTITY_BY_NAME(NanoHenry);
+constexpr Quantity QUANTITY_BY_NAME(MicroHenry);
+constexpr Quantity QUANTITY_BY_NAME(MilliHenry);
+constexpr Quantity QUANTITY_BY_NAME(Henry);
 
-constexpr Quantity Quantity::Joule               ( 1e+6                  , Unit::Work                    );
-constexpr Quantity Quantity::MilliJoule          ( 1e+3                  , Unit::Work                    );
-constexpr Quantity Quantity::KiloJoule           ( 1e+9                  , Unit::Work                    );
-constexpr Quantity Quantity::VoltAmpereSecond    ( 1e+6                  , Unit::Work                    );
-constexpr Quantity Quantity::WattSecond          ( 1e+6                  , Unit::Work                    );
-constexpr Quantity Quantity::KiloWattHour        ( 3.6e+12               , Unit::Work                    );
-constexpr Quantity Quantity::ElectronVolt        ( 1.602176634e-13       , Unit::Work                    );
-constexpr Quantity Quantity::KiloElectronVolt    ( 1.602176634e-10       , Unit::Work                    );
-constexpr Quantity Quantity::MegaElectronVolt    ( 1.602176634e-7        , Unit::Work                    );
-constexpr Quantity Quantity::Calorie             ( 4.1868e+6             , Unit::Work                    );
-constexpr Quantity Quantity::KiloCalorie         ( 4.1868e+9             , Unit::Work                    );
-constexpr Quantity Quantity::NewtonMeter         ( 1e+6                  , Unit::Moment                  );
+constexpr Quantity QUANTITY_BY_NAME(Joule);
+constexpr Quantity QUANTITY_BY_NAME(MilliJoule);
+constexpr Quantity QUANTITY_BY_NAME(KiloJoule);
+constexpr Quantity QUANTITY_BY_NAME(VoltAmpereSecond);
+constexpr Quantity QUANTITY_BY_NAME(WattSecond);
+constexpr Quantity QUANTITY_BY_NAME(KiloWattHour);
+constexpr Quantity QUANTITY_BY_NAME(ElectronVolt);
+constexpr Quantity QUANTITY_BY_NAME(KiloElectronVolt);
+constexpr Quantity QUANTITY_BY_NAME(MegaElectronVolt);
+constexpr Quantity QUANTITY_BY_NAME(Calorie);
+constexpr Quantity QUANTITY_BY_NAME(KiloCalorie);
+constexpr Quantity QUANTITY_BY_NAME(NewtonMeter);
 
-constexpr Quantity Quantity::KMH                 ( 1e+6 / 3600           , Unit::Velocity                );
-constexpr Quantity Quantity::MPH                 ( mi / 3600             , Unit::Velocity                );
+constexpr Quantity QUANTITY_BY_NAME(KMH);
+constexpr Quantity QUANTITY_BY_NAME(MPH);
 
-constexpr Quantity Quantity::AngMinute           ( 1.0 / 60.0            , Unit::Angle                   );
-constexpr Quantity Quantity::AngSecond           ( 1.0 / 3600.0          , Unit::Angle                   );
-constexpr Quantity Quantity::Degree              ( 1.0                   , Unit::Angle                   );
-constexpr Quantity Quantity::Radian              ( 180 / std::numbers::pi, Unit::Angle                   );
-constexpr Quantity Quantity::Gon                 ( 360.0 / 400.0         , Unit::Angle                   );
+constexpr Quantity QUANTITY_BY_NAME(AngMinute);
+constexpr Quantity QUANTITY_BY_NAME(AngSecond);
+constexpr Quantity QUANTITY_BY_NAME(Degree);
+constexpr Quantity QUANTITY_BY_NAME(Radian);
+constexpr Quantity QUANTITY_BY_NAME(Gon);
 // clang-format on
+
+#undef QUANTITY_BY_NAME
 
 // === Parser & Scanner stuff ===============================================
 

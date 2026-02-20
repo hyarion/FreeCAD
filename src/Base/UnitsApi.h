@@ -66,6 +66,7 @@ public:
     static bool isMultiUnitAngle();
     static bool isMultiUnitLength();
     static std::string getBasicLengthUnit();
+    static UnitSystem getUnitSystem();
 
     static std::size_t getDefSchemaNum()
     {
@@ -83,6 +84,7 @@ protected:
     static PyObject* sParseQuantity(PyObject* self, PyObject* args);
     static PyObject* sListSchemas(PyObject* self, PyObject* args);
     static PyObject* sGetSchema(PyObject* self, PyObject* args);
+    static PyObject* sGetUnitSystem(PyObject* self, PyObject* args);
     static PyObject* sSetSchema(PyObject* self, PyObject* args);
     static PyObject* sSchemaTranslate(PyObject* self, PyObject* args);
     static PyObject* sToNumber(PyObject* self, PyObject* args);

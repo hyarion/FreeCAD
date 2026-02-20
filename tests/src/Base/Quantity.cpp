@@ -438,3 +438,88 @@ TEST(BaseQuantityRegistry, findByUnitReturnsBothSystems)
     EXPECT_TRUE(hasMetric) << "Length should have metric entries";
     EXPECT_TRUE(hasImperial) << "Length should have imperial entries";
 }
+
+TEST(BaseQuantityRegistry, specsOrderedByValue_realSpecs)
+{
+    const auto& s = Base::QuantitySpecsData::specs;
+    for (size_t i = 1; i < s.size(); ++i) {
+        for (size_t j = i; j-- > 0;) {
+            if (s[j].unit != s[i].unit || s[j].unit.name() != s[i].unit.name()
+                || s[j].unitSystem != s[i].unitSystem) {
+                continue;
+            }
+            EXPECT_GE(s[i].value, s[j].value)
+                << "specs[" << i << "] \"" << s[i].name << "\" (value=" << s[i].value
+                << ") is less than specs[" << j << "] \"" << s[j].name << "\" (value=" << s[j].value
+                << ")";
+            break;
+        }
+    }
+}
+
+TEST(BaseQuantityRegistry, specsOrderedByValue_singleEntry)
+{
+    constexpr auto single = std::to_array<QuantitySpec>({
+        {"A", "a", 1.0, Unit::Length, UnitSystem::Metric},
+    });
+    EXPECT_TRUE(Base::QuantitySpecsData::specsOrderedByValue(single));
+}
+
+TEST(BaseQuantityRegistry, specsOrderedByValue_sameGroupAscending)
+{
+    constexpr auto ordered = std::to_array<QuantitySpec>({
+        {"A", "a", 1.0, Unit::Length, UnitSystem::Metric},
+        {"B", "b", 2.0, Unit::Length, UnitSystem::Metric},
+        {"C", "c", 3.0, Unit::Length, UnitSystem::Metric},
+    });
+    EXPECT_TRUE(Base::QuantitySpecsData::specsOrderedByValue(ordered));
+}
+
+TEST(BaseQuantityRegistry, specsOrderedByValue_differentSystemsIndependent)
+{
+    constexpr auto mixed = std::to_array<QuantitySpec>({
+        {"A", "a", 5.0, Unit::Length, UnitSystem::Metric},
+        {"B", "b", 1.0, Unit::Length, UnitSystem::Imperial},
+        {"C", "c", 10.0, Unit::Length, UnitSystem::Metric},
+    });
+    EXPECT_TRUE(Base::QuantitySpecsData::specsOrderedByValue(mixed));
+}
+
+TEST(BaseQuantityRegistry, specsOrderedByValue_differentUnitsIndependent)
+{
+    constexpr auto mixed = std::to_array<QuantitySpec>({
+        {"A", "a", 100.0, Unit::Length, UnitSystem::Metric},
+        {"B", "b", 1.0, Unit::Area, UnitSystem::Metric},
+    });
+    EXPECT_TRUE(Base::QuantitySpecsData::specsOrderedByValue(mixed));
+}
+
+TEST(BaseQuantityRegistry, specsOrderedByValue_sameExponentsDifferentNamesIndependent)
+{
+    // Work and Moment share exponents {2,1,-2} but have different names,
+    // so they should be treated as independent groups.
+    constexpr auto mixed = std::to_array<QuantitySpec>({
+        {"kWh", "kWh", 3.6e+12, Unit::Work, UnitSystem::Metric},
+        {"Nm", "Nm", 1e+6, Unit::Moment, UnitSystem::Metric},
+    });
+    EXPECT_TRUE(Base::QuantitySpecsData::specsOrderedByValue(mixed));
+}
+
+TEST(BaseQuantityRegistry, specsOrderedByValue_sameGroupDescending)
+{
+    constexpr auto bad = std::to_array<QuantitySpec>({
+        {"A", "a", 3.0, Unit::Length, UnitSystem::Metric},
+        {"B", "b", 1.0, Unit::Length, UnitSystem::Metric},
+    });
+    EXPECT_ANY_THROW(Base::QuantitySpecsData::specsOrderedByValue(bad));
+}
+
+TEST(BaseQuantityRegistry, specsOrderedByValue_outOfOrderAfterGap)
+{
+    constexpr auto bad = std::to_array<QuantitySpec>({
+        {"A", "a", 10.0, Unit::Length, UnitSystem::Metric},
+        {"B", "b", 1.0, Unit::Area, UnitSystem::Metric},
+        {"C", "c", 5.0, Unit::Length, UnitSystem::Metric},
+    });
+    EXPECT_ANY_THROW(Base::QuantitySpecsData::specsOrderedByValue(bad));
+}

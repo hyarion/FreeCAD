@@ -28,6 +28,8 @@
 #include <string_view>
 #include <vector>
 
+#include "UnitSystem.h"
+
 namespace Base
 {
 
@@ -49,6 +51,7 @@ struct UnitsSchemaSpec
     bool isMultUnitAngle {false};
     const char* description;
     bool isDefault {false};
+    UnitSystem unitSystem {UnitSystem::Metric};
 
     /**
      * Applicable spec is the first with threshold > value under test

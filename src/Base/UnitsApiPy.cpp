@@ -86,6 +86,12 @@ PyMethodDef UnitsApi::Methods[] = {
      "findPredefined(name) -> dict or None\n\n"
      "Looks up a predefined quantity by name. Returns a dict with keys:\n"
      "'name', 'symbol', 'value', 'unit', or None if not found."},
+    {"predefinedUnits",
+     sPredefinedUnits,
+     METH_NOARGS,
+     "predefinedUnits() -> list of dicts\n\n"
+     "Returns all predefined unit dimensions from unitSpecs.\n"
+     "Each dict has keys: 'name' (str), 'unit' (Unit)."},
 
     {nullptr, nullptr, 0, nullptr} /* Sentinel */
 };
@@ -287,4 +293,16 @@ PyObject* UnitsApi::sFindPredefined(PyObject* /*self*/, PyObject* args)
         Py_RETURN_NONE;
     }
     return specToDict(*spec);
+}
+
+PyObject* UnitsApi::sPredefinedUnits(PyObject* /*self*/, PyObject* /*args*/)
+{
+    Py::List result;
+    for (const auto& spec : unitSpecs) {
+        Py::Dict dict;
+        dict.setItem("name", Py::String(std::string(spec.name)));
+        dict.setItem("unit", Py::asObject(new UnitPy(new Unit(spec.exps, spec.name))));
+        result.append(dict);
+    }
+    return Py::new_reference_to(result);
 }

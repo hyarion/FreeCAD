@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <Base/Unit.h>
 #include <Mod/Spreadsheet/App/Sheet.h>
 #include <QDialog>
 
@@ -75,6 +76,8 @@ private:
     std::set<std::string> orgStyle;
     Spreadsheet::DisplayUnit orgDisplayUnit;
     std::string orgAlias;
+
+    void populateUnitDropdown(const Base::Unit& unit);
 
     bool displayUnitOk;
     bool aliasOk;

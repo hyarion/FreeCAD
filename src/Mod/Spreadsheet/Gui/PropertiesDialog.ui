@@ -241,7 +241,11 @@
         </widget>
        </item>
       <item row="0" column="1">
-        <widget class="QLineEdit" name="displayUnit"/>
+        <widget class="QComboBox" name="displayUnit">
+          <property name="editable">
+           <bool>true</bool>
+          </property>
+         </widget>
        </item>
        <item row="1" column="1">
         <spacer name="verticalSpacer">

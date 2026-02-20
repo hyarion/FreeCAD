@@ -27,6 +27,7 @@
 
 #include <QDialog>
 #include <memory>
+#include <optional>
 #include <Base/Quantity.h>
 #include <Base/Unit.h>
 
@@ -64,10 +65,13 @@ protected:
 
     void parseError(const QString& errorText);
 
+    void populateUnitInput(const Base::Unit& unit);
+
 private:
     Base::Quantity actValue;
     std::unique_ptr<Ui_DlgUnitCalculator> ui;
     QList<Base::Unit> units;
+    std::optional<Base::Unit> lastInputUnit;
 };
 
 }  // namespace Dialog

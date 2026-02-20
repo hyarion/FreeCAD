@@ -31,6 +31,7 @@
 #include "fmt/format.h"
 #include "fmt/ranges.h"
 
+#include "QuantitySpecsData.h"
 #include "UnitsConvData.h"
 #include "UnitsSchemasSpecs.h"
 
@@ -46,42 +47,53 @@ constexpr std::size_t defDenominator {8};
 
 using namespace Base::UnitsConvData;
 
+/// Look up a QuantitySpec by name at compile time. Fails to compile if not found.
+consteval const QuantitySpec* q(std::string_view name)
+{
+    for (const auto& s : QuantitySpecsData::specs) {
+        if (s.name == name) {
+            return &s;
+        }
+    }
+    throw "QuantitySpec not found in registry";
+}
+
 // NOLINTBEGIN
 // clang-format off
 inline const UnitsSchemaSpec s0
 { 6, "MmMin", "mm" , false, false , QT_TRANSLATE_NOOP("UnitsApi", "Metric small parts & CNC (mm, mm/min)"), false,
     {
-        { "Length",   {{ 0 , "mm"     , 1.0        }}},
-        { "Angle",    {{ 0 , "°"      , 1.0        }}},
-        { "Velocity", {{ 0 , "mm/min" , 1.0 / 60.0 }}}
+        { "Length",   {{ 0 , q("MilliMetre")          }}},
+        { "Angle",    {{ 0 , q("Degree")              }}},
+        { "Velocity", {{ 0 , q("MilliMetrePerMinute") }}}
     }
 };
 
 inline const UnitsSchemaSpec s1
 { 9, "MeterDecimal", "m", false, false, QT_TRANSLATE_NOOP("UnitsApi", "Meter decimal (m, m², m³)"), false,
     {
-        { "Length",             {{ 0 , "m"    , 1e3 }}},
-        { "Area",               {{ 0 , "m^2"  , 1e6 }}},
-        { "Volume",             {{ 0 , "m^3"  , 1e9 }}},
-        { "Power",              {{ 0 , "W"    , 1e6 }}},
-        { "ElectricPotential",  {{ 0 , "V"    , 1e6 }}},
-        { "HeatFlux",           {{ 0 , "W/m^2", 1.0 }}},
-        { "Velocity",           {{ 0 , "m/s"  , 1e3 }}}
+        { "Length",             {{ 0 , q("Metre")            }}},
+        { "Area",               {{ 0 , q("SquareMetre")      }}},
+        { "Volume",             {{ 0 , q("CubicMetre")       }}},
+        { "Power",              {{ 0 , q("Watt")             }}},
+        { "ElectricPotential",  {{ 0 , q("Volt")             }}},
+        { "HeatFlux",           {{ 0 , q("WattPerSqMetre")   }}},
+        { "Velocity",           {{ 0 , q("MetrePerSecond")   }}}
     }
 };
 
 inline const UnitsSchemaSpec s2
 { 3, "ImperialDecimal", "in", false, false, QT_TRANSLATE_NOOP("UnitsApi", "Imperial decimal (in, lb)"), false,
     {
-        { "Length",       {{ 0 , "in"      , in                }}},
-        { "Angle",        {{ 0 , "°"       , 1.0               }}},
-        { "Area",         {{ 0 , "in^2"    , in * in           }}},
-        { "Volume",       {{ 0 , "in^3"    , in * in * in      }}},
-        { "Mass",         {{ 0 , "lb"      , lb                }}},
-        { "Pressure",     {{ 0 , "psi"     , psi               }}},
-        { "Stiffness",    {{ 0 , "lbf/in"  , lbf / in * 1000   }}},
-        { "Velocity",     {{ 0 , "in/min"  , in / 60           }}},
-        { "Acceleration", {{ 0 , "in/min^2", in / 3600         }}}
+        { "Length",       {{ 0 , q("Inch")                    }}},
+        { "Angle",        {{ 0 , q("Degree")                  }}},
+        { "Area",         {{ 0 , q("SquareInch")              }}},
+        { "Volume",       {{ 0 , q("CubicInch")               }}},
+        { "Mass",         {{ 0 , q("Pound")                   }}},
+        { "Pressure",     {{ 0 , q("PSI")                     }}},
+        { "Stiffness",    {{ 0 , q("PoundForcePerInch")       }}},
+        { "Velocity",     {{ 0 , q("InchPerMinute")           }}},
+        { "Acceleration", {{ 0 , q("InchPerMinuteSquared")    }}}
     }
 };
 
@@ -89,234 +101,234 @@ inline const UnitsSchemaSpec s3
 { 0, "Internal", "mm", false, false, QT_TRANSLATE_NOOP("UnitsApi", "Standard (mm, kg, s, °)"), true,
     {
         { "Length", {
-            { 1e-6            , "mm"         , 1.0             },
-            { 1e-3            , "nm"         , 1e-6            },
-            { 1e-1            , "\xC2\xB5m"  , 1e-3            },
-            { 1e4             , "mm"         , 1.0             },
-            { 1e7             , "m"          , 1e3             },
-            { 1e10            , "km"         , 1e6             },
-            { 0               , "m"          , 1e3             }}
+            { 1e-6            , q("MilliMetre")              },
+            { 1e-3            , q("NanoMetre")               },
+            { 1e-1            , q("MicroMetre")              },
+            { 1e4             , q("MilliMetre")              },
+            { 1e7             , q("Metre")                   },
+            { 1e10            , q("KiloMetre")               },
+            { 0               , q("Metre")                   }}
         },
         { "Area", {
-            { 1e2             , "mm^2"       , 1.0             },
-            { 1e6             , "cm^2"       , 1e2             },
-            { 1e12            , "m^2"        , 1e6             },
-            { 0               , "km^2"       , 1e12            }}
+            { 1e2             , q("SquareMilliMetre")        },
+            { 1e6             , q("SquareCentiMetre")        },
+            { 1e12            , q("SquareMetre")             },
+            { 0               , q("SquareKiloMetre")         }}
         },
         { "Volume", {
-            { 1e3             , "mm^3"       , 1.0             },
-            { 1e6             , "ml"         , 1e3             },
-            { 1e9             , "l"          , 1e6             },
-            { 0               , "m^3"        , 1e9             }}
+            { 1e3             , q("CubicMilliMetre")         },
+            { 1e6             , q("MilliLiter")              },
+            { 1e9             , q("Liter")                   },
+            { 0               , q("CubicMetre")              }}
         },
         { "Angle", {
-            { 0               , "°"          , 1.0             }}
+            { 0               , q("Degree")                  }}
         },
         { "Mass", {
-            { 1e-6            , "\xC2\xB5g"  , 1e-9            },
-            { 1e-3            , "mg"         , 1e-6            },
-            { 1.0             , "g"          , 1e-3            },
-            { 1e3             , "kg"         , 1.0             },
-            { 0               , "t"          , 1e3             }}
+            { 1e-6            , q("MicroGram")               },
+            { 1e-3            , q("MilliGram")               },
+            { 1.0             , q("Gram")                    },
+            { 1e3             , q("KiloGram")                },
+            { 0               , q("Ton")                     }}
         },
         { "Density", {
-            { 1e-4            , "kg/m^3"     , 1e-9            },
-            { 1.0             , "kg/cm^3"    , 1e-3            },
-            { 0               , "kg/mm^3"    , 1.0             }}
+            { 1e-4            , q("KgPerCubicMetre")         },
+            { 1.0             , q("KgPerCubicCentiMetre")    },
+            { 0               , q("KgPerCubicMilliMetre")    }}
         },
         { "ThermalConductivity", {
-            { 1e6             , "W/m/K"      , 1e3             },
-            { 0               , "W/mm/K"     , 1e6             }}
+            { 1e6             , q("WattPerMetreKelvin")      },
+            { 0               , q("WattPerMmKelvin")         }}
         },
         { "ThermalExpansionCoefficient", {
-            { 1e-3            , "\xC2\xB5m/m/K" , 1e-6         },
-            { 0               , "mm/mm/K"    , 1.0             }}
+            { 1e-3            , q("UmPerMPerKelvin")         },
+            { 0               , q("MmPerMmPerKelvin")        }}
         },
         { "VolumetricThermalExpansionCoefficient", {
-            { 1e-3            , "mm^3/m^3/K" , 1e-9            },
-            { 0               , "m^3/m^3/K"  , 1.0             }}
+            { 1e-3            , q("CubicMmPerCubicMPerK")    },
+            { 0               , q("CubicMPerCubicMPerK")     }}
         },
         { "SpecificHeat", {
-            { 0               , "J/kg/K"     , 1e6             }}
+            { 0               , q("JoulePerKgKelvin")        }}
         },
         { "ThermalTransferCoefficient", {
-            { 0               , "W/m^2/K"    , 1.0             }}
+            { 0               , q("WattPerSqMetreKelvin")    }}
         },
         { "Pressure", {
-            { 10.0            , "Pa"         , 1e-3            },
-            { 1e4             , "kPa"        , 1.0             },
-            { 1e7             , "MPa"        , 1e3             },
-            { 1e10            , "GPa"        , 1e6             },
-            { 0               , "Pa"         , 1e-3            }}
+            { 10.0            , q("Pascal")                  },
+            { 1e4             , q("KiloPascal")              },
+            { 1e7             , q("MegaPascal")              },
+            { 1e10            , q("GigaPascal")              },
+            { 0               , q("Pascal")                  }}
         },
         { "Stress", {
-            { 10.0            , "Pa"         , 1e-3            },
-            { 1e4             , "kPa"        , 1.0             },
-            { 1e7             , "MPa"        , 1e3             },
-            { 1e10            , "GPa"        , 1e6             },
-            { 0               , "Pa"         , 1e-3            }}
+            { 10.0            , q("Pascal")                  },
+            { 1e4             , q("KiloPascal")              },
+            { 1e7             , q("MegaPascal")              },
+            { 1e10            , q("GigaPascal")              },
+            { 0               , q("Pascal")                  }}
         },
         { "Stiffness", {
-            { 1               , "mN/m"       , 1e-3            },
-            { 1e3             , "N/m"        , 1.0             },
-            { 1e6             , "kN/m"       , 1e3             },
-            { 0               , "MN/m"       , 1e6             }}
+            { 1               , q("MilliNewtonPerMeter")     },
+            { 1e3             , q("NewtonPerMeter")          },
+            { 1e6             , q("KiloNewtonPerMeter")      },
+            { 0               , q("MegaNewtonPerMeter")      }}
         },
         { "StiffnessDensity", {
-            { 1e-3            , "Pa/m"       , 1e-6            },
-            { 1               , "kPa/m"      , 1e-3            },
-            { 1e3             , "MPa/m"      , 1.0             },
-            { 0               , "GPa/m"      , 1e3             }}
+            { 1e-3            , q("PaPerMetre")              },
+            { 1               , q("KPaPerMetre")             },
+            { 1e3             , q("MPaPerMetre")             },
+            { 0               , q("GPaPerMetre")             }}
         },
         { "Force", {
-            { 1e3             , "mN"         , 1.0             },
-            { 1e6             , "N"          , 1e3             },
-            { 1e9             , "kN"         , 1e6             },
-            { 0               , "MN"         , 1e9             }}
+            { 1e3             , q("MilliNewton")             },
+            { 1e6             , q("Newton")                  },
+            { 1e9             , q("KiloNewton")              },
+            { 0               , q("MegaNewton")              }}
         },
         { "Power", {
-            { 1e6             , "mW"         , 1e3             },
-            { 1e9             , "W"          , 1e6             },
-            { 0               , "kW"         , 1e9             }}
+            { 1e6             , q("MilliWatt")               },
+            { 1e9             , q("Watt")                    },
+            { 0               , q("KiloWatt")                }}
         },
         { "ElectricPotential", {
-            { 1e6             , "mV"         , 1e3             },
-            { 1e9             , "V"          , 1e6             },
-            { 1e12            , "kV"         , 1e9             },
-            { 0               , "V"          , 1e6             }}
+            { 1e6             , q("MilliVolt")               },
+            { 1e9             , q("Volt")                    },
+            { 1e12            , q("KiloVolt")                },
+            { 0               , q("Volt")                    }}
         },
         { "Work", {
-            { 1.602176634e-10 , "eV"         , 1.602176634e-13 },
-            { 1.602176634e-7  , "keV"        , 1.602176634e-10 },
-            { 1.602176634e-4  , "MeV"        , 1.602176634e-7  },
-            { 1e6             , "mJ"         , 1e3             },
-            { 1e9             , "J"          , 1e6             },
-            { 1e12            , "kJ"         , 1e9             },
-            { 3.6e+15         , "kWh"        , 3.6e+12         },
-            { 0               , "J"          , 1e6             }}
+            { 1.602176634e-10 , q("ElectronVolt")            },
+            { 1.602176634e-7  , q("KiloElectronVolt")        },
+            { 1.602176634e-4  , q("MegaElectronVolt")        },
+            { 1e6             , q("MilliJoule")              },
+            { 1e9             , q("Joule")                   },
+            { 1e12            , q("KiloJoule")               },
+            { 3.6e+15         , q("KiloWattHour")            },
+            { 0               , q("Joule")                   }}
         },
         { "Moment", {
-            { 0               , "Nm"         , 1e6             }}
+            { 0               , q("NewtonMeter")             }}
         },
         { "SpecificEnergy", {
-            { 0               , "m^2/s^2"    , 1e6             }}
+            { 0               , q("SqMetrePerSqSecond")      }}
         },
         { "HeatFlux", {
-            { 0               , "W/m^2"      , 1.0             }}
+            { 0               , q("WattPerSqMetre")          }}
         },
         { "ElectricCharge", {
-            { 0               , "C"          , 1.0             }}
+            { 0               , q("Coulomb")                 }}
         },
         { "SurfaceChargeDensity", {
-            { 1e-2            , "C/m^2"      , 1e-6            },
-            { 1.0             , "C/cm^2"     , 1e-2            },
-            { 0               , "C/mm^2"     , 1.0             }}
+            { 1e-2            , q("CoulombPerSqMetre")       },
+            { 1.0             , q("CoulombPerSqCentiMetre")  },
+            { 0               , q("CoulombPerSqMilliMetre")  }}
         },
         { "VolumeChargeDensity", {
-            { 1e-3            , "C/m^3"      , 1e-9            },
-            { 1.0             , "C/cm^3"     , 1e-3            },
-            { 0               , "C/mm^3"     , 1.0             }}
+            { 1e-3            , q("CoulombPerCubicMetre")    },
+            { 1.0             , q("CoulombPerCubicCm")       },
+            { 0               , q("CoulombPerCubicMm")       }}
         },
         { "CurrentDensity", {
-            { 1e-2            , "A/m^2"      , 1e-6            },
-            { 1.0             , "A/cm^2"     , 1e-2            },
-            { 0               , "A/mm^2"     , 1               }}
+            { 1e-2            , q("AmperePerSqMetre")        },
+            { 1.0             , q("AmperePerSqCentiMetre")   },
+            { 0               , q("AmperePerSqMilliMetre")   }}
         },
         { "MagneticFluxDensity", {
-            { 1.0             , "mT"         , 1e-3            },
-            { 0               , "T"          , 1.0             }}
+            { 1.0             , q("MilliTesla")              },
+            { 0               , q("Tesla")                   }}
         },
         { "MagneticFieldStrength", {
-            { 0               , "A/m"        , 1e-3            }}
+            { 0               , q("AmperePerMetre")          }}
         },
         { "MagneticFlux", {
-            { 0               , "Wb"         , 1e6             }}
+            { 0               , q("Weber")                   }}
         },
         { "Magnetization", {
-            { 0               , "A/m"        , 1e-3            }}
+            { 0               , q("AmperePerMetre")          }}
         },
         { "ElectromagneticPotential", {
-            { 0               , "Wb/m"        , 1e3            }}
+            { 0               , q("WeberPerMetre")           }}
         },
         { "ElectricalConductance", {
-            { 1e-9            , "\xC2\xB5S"  , 1e-12           },
-            { 1e-6            , "mS"         , 1e-9            },
-            { 0               , "S"          , 1e-6            }}
+            { 1e-9            , q("MicroSiemens")            },
+            { 1e-6            , q("MilliSiemens")            },
+            { 0               , q("Siemens")                 }}
         },
         { "ElectricalResistance", {
-            { 1e9             , "Ohm"        , 1e6             },
-            { 1e12            , "kOhm"       , 1e9             },
-            { 0               , "MOhm"       , 1e12            }}
+            { 1e9             , q("Ohm")                     },
+            { 1e12            , q("KiloOhm")                 },
+            { 0               , q("MegaOhm")                 }}
         },
         { "ElectricalConductivity", {
-            { 1e-9            , "mS/m"       , 1e-12           },
-            { 1e-6            , "S/m"        , 1e-9            },
-            { 1e-3            , "kS/m"       , 1e-6            },
-            { 0               , "MS/m"       , 1e-3            }}
+            { 1e-9            , q("MilliSiemensPerMetre")    },
+            { 1e-6            , q("SiemensPerMetre")         },
+            { 1e-3            , q("KiloSiemensPerMetre")     },
+            { 0               , q("MegaSiemensPerMetre")     }}
         },
         { "ElectricalCapacitance", {
-            { 1e-15           , "pF"         , 1e-18           },
-            { 1e-12           , "nF"         , 1e-15           },
-            { 1e-9            , "\xC2\xB5""F", 1e-12           },
-            { 1e-6            , "mF"         , 1e-9            },
-            { 0               , "F"          , 1e-6            }}
+            { 1e-15           , q("PicoFarad")               },
+            { 1e-12           , q("NanoFarad")               },
+            { 1e-9            , q("MicroFarad")              },
+            { 1e-6            , q("MilliFarad")              },
+            { 0               , q("Farad")                   }}
         },
         { "ElectricalInductance", {
-            { 1.0             , "nH"         , 1e-3            },
-            { 1e3             , "\xC2\xB5H"  , 1.0             },
-            { 1e6             , "mH"         , 1e3             },
-            { 0               , "H"          , 1e6             }}
+            { 1.0             , q("NanoHenry")               },
+            { 1e3             , q("MicroHenry")              },
+            { 1e6             , q("MilliHenry")              },
+            { 0               , q("Henry")                   }}
         },
         { "VacuumPermittivity", {
-            { 0               , "F/m"        , 1e-9            }}
+            { 0               , q("FaradPerMetre")           }}
         },
         { "Frequency", {
-            { 1e3             , "Hz"         , 1.0             },
-            { 1e6             , "kHz"        , 1e3             },
-            { 1e9             , "MHz"        , 1e6             },
-            { 1e12            , "GHz"        , 1e9             },
-            { 0               , "THz"        , 1e12            }}
+            { 1e3             , q("Hertz")                   },
+            { 1e6             , q("KiloHertz")               },
+            { 1e9             , q("MegaHertz")               },
+            { 1e12            , q("GigaHertz")               },
+            { 0               , q("TeraHertz")               }}
         },
         { "Velocity", {
-            { 0               , "mm/s"       , 1.0             }}
+            { 0               , q("MilliMetrePerSecond")     }}
         },
         { "DynamicViscosity", {
-            { 0               , "Pa*s"       , 1e-3            }}
+            { 0               , q("PascalSecond")            }}
         },
         { "KinematicViscosity", {
-            { 1e3             , "mm^2/s"     , 1.0             },
-            { 0               , "m^2/s"      , 1e6             }}
+            { 1e3             , q("SqMmPerSecond")           },
+            { 0               , q("SqMetrePerSecond")        }}
         },
         { "VolumeFlowRate", {
-            { 1e3             , "mm^3/s"     , 1.0             },
-            { 1e6             , "ml/s"       , 1e3             },
-            { 1e9             , "l/s"        , 1e6             },
-            { 0               , "m^3/s"      , 1e9             }}
+            { 1e3             , q("CubicMmPerSecond")        },
+            { 1e6             , q("MlPerSecond")             },
+            { 1e9             , q("LitrePerSecond")          },
+            { 0               , q("CubicMetrePerSecond")     }}
         },
         { "DissipationRate", {
-            { 0               , "W/kg"       , 1e6             }}
+            { 0               , q("WattPerKg")               }}
         },
         { "InverseLength", {
-            { 1e-6            , "1/m"        , 1e-3            },
-            { 1e-3            , "1/km"       , 1e-6            },
-            { 1.0             , "1/m"        , 1e-3            },
-            { 1e3             , "1/mm"       , 1.0             },
-            { 1e6             , "1/\xC2\xB5m", 1e3             },
-            { 1e9             , "1/nm"       , 1e6             },
-            { 0               , "1/m"        , 1e-3            }}
+            { 1e-6            , q("PerMetre")                },
+            { 1e-3            , q("PerKiloMetre")            },
+            { 1.0             , q("PerMetre")                },
+            { 1e3             , q("PerMilliMetre")           },
+            { 1e6             , q("PerMicroMetre")           },
+            { 1e9             , q("PerNanoMetre")            },
+            { 0               , q("PerMetre")                }}
         },
         { "InverseArea", {
-            { 1e-12           , "1/m^2"      , 1e-6            },
-            { 1e-6            , "1/km^2"     , 1e-12           },
-            { 1.0             , "1/m^2"      , 1e-6            },
-            { 1e2             , "1/cm^2"     , 1e-2            },
-            { 0               , "1/mm^2"     , 1.0             }}
+            { 1e-12           , q("PerSqMetre")              },
+            { 1e-6            , q("PerSqKiloMetre")          },
+            { 1.0             , q("PerSqMetre")              },
+            { 1e2             , q("PerSqCentiMetre")         },
+            { 0               , q("PerSqMilliMetre")         }}
         },
         { "InverseVolume", {
-            { 1e-6            , "1/m^3"      , 1e-9            },
-            { 1e-3            , "1/l"        , 1e-6            },
-            { 1.0             , "1/ml"       , 1e-3            },
-            { 0               , "1/mm^3"     , 1.0             }}
+            { 1e-6            , q("PerCubicMetre")           },
+            { 1e-3            , q("PerLitre")                },
+            { 1.0             , q("PerMilliLitre")           },
+            { 0               , q("PerCubicMilliMetre")      }}
         }
     }
 };
@@ -325,226 +337,226 @@ inline const UnitsSchemaSpec s4
 { 1, "MKS", "m", false, false, QT_TRANSLATE_NOOP("UnitsApi", "MKS (m, kg, s, °)") , false,
     {
         { "Length", {
-            { 1e-6            , "mm"         , 1.0             },
-            { 1e-3            , "nm"         , 1e-6            },
-            { 0.1             , "\xC2\xB5m"  , 1e-3            },
-            { 1e4             , "mm"         , 1.0             },
-            { 1e7             , "m"          , 1e3             },
-            { 1e10            , "km"         , 1e6             },
-            { 0               , "m"          , 1e3             }}
+            { 1e-6            , q("MilliMetre")              },
+            { 1e-3            , q("NanoMetre")               },
+            { 0.1             , q("MicroMetre")              },
+            { 1e4             , q("MilliMetre")              },
+            { 1e7             , q("Metre")                   },
+            { 1e10            , q("KiloMetre")               },
+            { 0               , q("Metre")                   }}
         },
         { "Area", {
-            { 100             , "mm^2"       , 1.0             },
-            { 1e6             , "cm^2"       , 100             },
-            { 1e12            , "m^2"        , 1e6             },
-            { 0               , "km^2"       , 1e12            }}
+            { 100             , q("SquareMilliMetre")        },
+            { 1e6             , q("SquareCentiMetre")        },
+            { 1e12            , q("SquareMetre")             },
+            { 0               , q("SquareKiloMetre")         }}
         },
         { "Volume", {
-            { 1e3             , "mm^3"       , 1.0             },
-            { 1e6             , "ml"         , 1e3             },
-            { 1e9             , "l"          , 1e6             },
-            { 0               , "m^3"        , 1e9             }}
+            { 1e3             , q("CubicMilliMetre")         },
+            { 1e6             , q("MilliLiter")              },
+            { 1e9             , q("Liter")                   },
+            { 0               , q("CubicMetre")              }}
         },
         { "Mass", {
-            { 1e-6            , "\xC2\xB5g"  , 1e-9            },
-            { 1e-3            , "mg"         , 1e-6            },
-            { 1.0             , "g"          , 1e-3            },
-            { 1e3             , "kg"         , 1.0             },
-            { 0               , "t"          , 1e3             }}
+            { 1e-6            , q("MicroGram")               },
+            { 1e-3            , q("MilliGram")               },
+            { 1.0             , q("Gram")                    },
+            { 1e3             , q("KiloGram")                },
+            { 0               , q("Ton")                     }}
         },
         { "Density", {
-            { 0.0001          , "kg/m^3"     , 0.000000001     },
-            { 1.0             , "kg/cm^3"    , 0.001           },
-            { 0               , "kg/mm^3"    , 1.0             }}
+            { 0.0001          , q("KgPerCubicMetre")         },
+            { 1.0             , q("KgPerCubicCentiMetre")    },
+            { 0               , q("KgPerCubicMilliMetre")    }}
         },
         { "Acceleration", {
-            { 0               , "m/s^2"      , 1000.0          }}
+            { 0               , q("MetrePerSecondSquared")   }}
         },
         { "Pressure", {
-            { 10.0             , "Pa"        , 0.001           },
-            { 10'000.0         , "kPa"       , 1.0             },
-            { 10'000'000.0     , "MPa"       , 1'000.0         },
-            { 10'000'000'000.0 , "GPa"       , 1'000'000.0     },
-            { 0                , "Pa"        , 0.001           }}
+            { 10.0            , q("Pascal")                  },
+            { 1e4             , q("KiloPascal")              },
+            { 1e7             , q("MegaPascal")              },
+            { 1e10            , q("GigaPascal")              },
+            { 0               , q("Pascal")                  }}
         },
         { "Stress", {
-            { 10.0             , "Pa"        , 0.001           },
-            { 10'000.0         , "kPa"       , 1.0             },
-            { 10'000'000.0     , "MPa"       , 1'000.0         },
-            { 10'000'000'000.0 , "GPa"       , 1'000'000.0     },
-            { 0                , "Pa"        , 0.001           }}
+            { 10.0            , q("Pascal")                  },
+            { 1e4             , q("KiloPascal")              },
+            { 1e7             , q("MegaPascal")              },
+            { 1e10            , q("GigaPascal")              },
+            { 0               , q("Pascal")                  }}
         },
         { "Stiffness", {
-            { 1               , "mN/m"       , 1e-3            },
-            { 1e3             , "N/m"        , 1.0             },
-            { 1e6             , "kN/m"       , 1e3             },
-            { 0               , "MN/m"       , 1e6             }}
+            { 1               , q("MilliNewtonPerMeter")     },
+            { 1e3             , q("NewtonPerMeter")          },
+            { 1e6             , q("KiloNewtonPerMeter")      },
+            { 0               , q("MegaNewtonPerMeter")      }}
         },
         { "StiffnessDensity", {
-            { 1e-3            , "Pa/m"       , 1e-6            },
-            { 1               , "kPa/m"      , 1e-3            },
-            { 1e3             , "MPa/m"      , 1.0             },
-            { 0               , "GPa/m"      , 1e3             }}
+            { 1e-3            , q("PaPerMetre")              },
+            { 1               , q("KPaPerMetre")             },
+            { 1e3             , q("MPaPerMetre")             },
+            { 0               , q("GPaPerMetre")             }}
         },
         { "ThermalConductivity", {
-            { 1'000'000       , "W/m/K"      , 1'000.0         },
-            { 0               , "W/mm/K"     , 1'000'000.0     }}
+            { 1e6             , q("WattPerMetreKelvin")      },
+            { 0               , q("WattPerMmKelvin")         }}
         },
         { "ThermalExpansionCoefficient", {
-            { 0.001           , "\xC2\xB5m/m/K" , 0.000001     },
-            { 0               , "m/m/K"      , 1.0             }}
+            { 0.001           , q("UmPerMPerKelvin")         },
+            { 0               , q("MetrePerMetrePerKelvin")  }}
         },
         { "VolumetricThermalExpansionCoefficient", {
-            { 0.001           , "mm^3/m^3/K" , 1e-9            },
-            { 0               , "m^3/m^3/K"  , 1.0             }}
+            { 0.001           , q("CubicMmPerCubicMPerK")    },
+            { 0               , q("CubicMPerCubicMPerK")     }}
         },
         { "SpecificHeat", {
-            { 0               , "J/kg/K"     , 1'000'000.0     }}
+            { 0               , q("JoulePerKgKelvin")        }}
         },
         { "ThermalTransferCoefficient", {
-            { 0               , "W/m^2/K"    , 1.0             }}
+            { 0               , q("WattPerSqMetreKelvin")    }}
         },
         { "Force", {
-            { 1e3             , "mN"         , 1.0             },
-            { 1e6             , "N"          , 1e3             },
-            { 1e9             , "kN"         , 1e6             },
-            { 0               , "MN"         , 1e9             }}
+            { 1e3             , q("MilliNewton")             },
+            { 1e6             , q("Newton")                  },
+            { 1e9             , q("KiloNewton")              },
+            { 0               , q("MegaNewton")              }}
         },
         { "Power", {
-            { 1e6             , "mW"         , 1e3             },
-            { 1e9             , "W"          , 1e6             },
-            { 0               , "kW"         , 1e9             }}
+            { 1e6             , q("MilliWatt")               },
+            { 1e9             , q("Watt")                    },
+            { 0               , q("KiloWatt")                }}
         },
         { "ElectricPotential", {
-            { 1e6             , "mV"         , 1e3             },
-            { 1e9             , "V"          , 1e6             },
-            { 1e12            , "kV"         , 1e9             },
-            { 0               , "V"          , 1e6             }}
+            { 1e6             , q("MilliVolt")               },
+            { 1e9             , q("Volt")                    },
+            { 1e12            , q("KiloVolt")                },
+            { 0               , q("Volt")                    }}
         },
         { "ElectricCharge", {
-            { 0               , "C"          , 1.0             }}
+            { 0               , q("Coulomb")                 }}
         },
         { "SurfaceChargeDensity", {
-            { 0               , "C/m^2"      , 1e-6            }}
+            { 0               , q("CoulombPerSqMetre")       }}
         },
         { "VolumeChargeDensity", {
-            { 0               , "C/m^3"      , 1e-9            }}
+            { 0               , q("CoulombPerCubicMetre")    }}
         },
         { "CurrentDensity", {
-            { 1.0             , "A/m^2"      , 1e-6            },
-            { 0               , "A/mm^2"     , 1.0             }}
+            { 1.0             , q("AmperePerSqMetre")        },
+            { 0               , q("AmperePerSqMilliMetre")   }}
         },
         { "MagneticFluxDensity", {
-            { 1.0             , "mT"         , 1e-3            },
-            { 0               , "T"          , 1.0             }}
+            { 1.0             , q("MilliTesla")              },
+            { 0               , q("Tesla")                   }}
         },
         { "MagneticFieldStrength", {
-            { 0               , "A/m"        , 1e-3            }}
+            { 0               , q("AmperePerMetre")          }}
         },
         { "MagneticFlux", {
-            { 0               , "Wb"         , 1e6             }}
+            { 0               , q("Weber")                   }}
         },
         { "Magnetization", {
-            { 0               , "A/m"        , 1e-3            }}
+            { 0               , q("AmperePerMetre")          }}
         },
         { "ElectromagneticPotential", {
-            { 0               , "Wb/m"        , 1e3            }}
+            { 0               , q("WeberPerMetre")           }}
         },
         { "ElectricalConductance", {
-            { 1e-9            , "\xC2\xB5S"  , 1e-12           },
-            { 1e-6            , "mS"         , 1e-9            },
-            { 0               , "S"          , 1e-6            }}
+            { 1e-9            , q("MicroSiemens")            },
+            { 1e-6            , q("MilliSiemens")            },
+            { 0               , q("Siemens")                 }}
         },
         { "ElectricalResistance", {
-            { 1e9             , "Ohm"        , 1e6             },
-            { 1e12            , "kOhm"       , 1e9             },
-            { 0               , "MOhm"       , 1e12            }}
+            { 1e9             , q("Ohm")                     },
+            { 1e12            , q("KiloOhm")                 },
+            { 0               , q("MegaOhm")                 }}
         },
         { "ElectricalConductivity", {
-            { 1e-9            , "mS/m"       , 1e-12           },
-            { 1e-6            , "S/m"        , 1e-9            },
-            { 1e-3            , "kS/m"       , 1e-6            },
-            { 0               , "MS/m"       , 1e-3            }}
+            { 1e-9            , q("MilliSiemensPerMetre")    },
+            { 1e-6            , q("SiemensPerMetre")         },
+            { 1e-3            , q("KiloSiemensPerMetre")     },
+            { 0               , q("MegaSiemensPerMetre")     }}
         },
         { "ElectricalCapacitance", {
-            { 1e-15           , "pF"         , 1e-18           },
-            { 1e-12           , "nF"         , 1e-15           },
-            { 1e-9            , "\xC2\xB5""F", 1e-12           },
-            { 1e-6            , "mF"         , 1e-9            },
-            { 0               , "F"          , 1e-6            }}
+            { 1e-15           , q("PicoFarad")               },
+            { 1e-12           , q("NanoFarad")               },
+            { 1e-9            , q("MicroFarad")              },
+            { 1e-6            , q("MilliFarad")              },
+            { 0               , q("Farad")                   }}
         },
         { "ElectricalInductance", {
-            { 1.0             , "nH"         , 1e-3            },
-            { 1e3             , "\xC2\xB5H"  , 1.0             },
-            { 1e6             , "mH"         , 1e3             },
-            { 0               , "H"          , 1e6             }}
+            { 1.0             , q("NanoHenry")               },
+            { 1e3             , q("MicroHenry")              },
+            { 1e6             , q("MilliHenry")              },
+            { 0               , q("Henry")                   }}
         },
         { "VacuumPermittivity", {
-            { 0               , "F/m"        , 1e-9            }}
+            { 0               , q("FaradPerMetre")           }}
         },
         { "Work", {
-            { 1.602176634e-10 , "eV"         , 1.602176634e-13 },
-            { 1.602176634e-7  , "keV"        , 1.602176634e-10 },
-            { 1.602176634e-4  , "MeV"        , 1.602176634e-7  },
-            { 1e6             , "mJ"         , 1e3             },
-            { 1e9             , "J"          , 1e6             },
-            { 1e12            , "kJ"         , 1e9             },
-            { 3.6e+15         , "kWh"        , 3.6e+12         },
-            { 0               , "J"          , 1e6             }}
+            { 1.602176634e-10 , q("ElectronVolt")            },
+            { 1.602176634e-7  , q("KiloElectronVolt")        },
+            { 1.602176634e-4  , q("MegaElectronVolt")        },
+            { 1e6             , q("MilliJoule")              },
+            { 1e9             , q("Joule")                   },
+            { 1e12            , q("KiloJoule")               },
+            { 3.6e+15         , q("KiloWattHour")            },
+            { 0               , q("Joule")                   }}
         },
         { "SpecificEnergy", {
-            { 0               , "m^2/s^2"    , 1000000         }}
+            { 0               , q("SqMetrePerSqSecond")      }}
         },
         { "HeatFlux", {
-            { 0               , "W/m^2"      , 1.0             }}
+            { 0               , q("WattPerSqMetre")          }}
         },
         { "Frequency", {
-            { 1e3             , "Hz"         , 1.0             },
-            { 1e6             , "kHz"        , 1e3             },
-            { 1e9             , "MHz"        , 1e6             },
-            { 1e12            , "GHz"        , 1e9             },
-            { 0               , "THz"        , 1e12            }}
+            { 1e3             , q("Hertz")                   },
+            { 1e6             , q("KiloHertz")               },
+            { 1e9             , q("MegaHertz")               },
+            { 1e12            , q("GigaHertz")               },
+            { 0               , q("TeraHertz")               }}
         },
         { "Velocity", {
-            { 0               , "m/s"        , 1000.0          }}
+            { 0               , q("MetrePerSecond")          }}
         },
         { "DynamicViscosity", {
-            { 0               , "Pa*s"       , 0.001           }}
+            { 0               , q("PascalSecond")            }}
         },
         { "KinematicViscosity", {
-            { 0               , "m^2/s"      , 1e6             }}
+            { 0               , q("SqMetrePerSecond")        }}
         },
         { "VolumeFlowRate", {
-            { 1e-3            , "m^3/s"      , 1e9             },
-            { 1e3             , "mm^3/s"     , 1.0             },
-            { 1e6             , "ml/s"       , 1e3             },
-            { 1e9             , "l/s"        , 1e6             },
-            { 0               , "m^3/s"      , 1e9             }}
+            { 1e-3            , q("CubicMetrePerSecond")     },
+            { 1e3             , q("CubicMmPerSecond")        },
+            { 1e6             , q("MlPerSecond")             },
+            { 1e9             , q("LitrePerSecond")          },
+            { 0               , q("CubicMetrePerSecond")     }}
         },
         { "DissipationRate", {
-            { 0               , "W/kg"       , 1e6             }}
+            { 0               , q("WattPerKg")               }}
         },
         { "InverseLength", {
-            { 1e-6            , "1/m"        , 1e-3             },
-            { 1e-3            , "1/km"       , 1e-6             },
-            { 1.0             , "1/m"        , 1e-3             },
-            { 1e3             , "1/mm"       , 1.0              },
-            { 1e6             , "1/\xC2\xB5m", 1e3              },
-            { 1e9             , "1/nm"       , 1e6              },
-            { 0               , "1/m"        , 1e-3             }}
+            { 1e-6            , q("PerMetre")                },
+            { 1e-3            , q("PerKiloMetre")            },
+            { 1.0             , q("PerMetre")                },
+            { 1e3             , q("PerMilliMetre")           },
+            { 1e6             , q("PerMicroMetre")           },
+            { 1e9             , q("PerNanoMetre")            },
+            { 0               , q("PerMetre")                }}
         },
         { "InverseArea", {
-            { 1e-12           , "1/m^2"      , 1e-6             },
-            { 1e-6            , "1/km^2"     , 1e-12            },
-            { 1.0             , "1/m^2"      , 1e-6             },
-            { 1e2             , "1/cm^2"     , 1e-2             },
-            { 0               , "1/mm^2"     , 1.0              }}
+            { 1e-12           , q("PerSqMetre")              },
+            { 1e-6            , q("PerSqKiloMetre")          },
+            { 1.0             , q("PerSqMetre")              },
+            { 1e2             , q("PerSqCentiMetre")         },
+            { 0               , q("PerSqMilliMetre")         }}
         },
         { "InverseVolume", {
-            { 1e-6            , "1/m^3"      , 1e-9             },
-            { 1e-3            , "1/l"        , 1e-6             },
-            { 1.0             , "1/ml"       , 1e-3             },
-            { 0               , "1/mm^3"     , 1.0              }}
+            { 1e-6            , q("PerCubicMetre")           },
+            { 1e-3            , q("PerLitre")                },
+            { 1.0             , q("PerMilliLitre")           },
+            { 0               , q("PerCubicMilliMetre")      }}
         }
     }
 };
@@ -553,25 +565,25 @@ inline const UnitsSchemaSpec s5
 { 4, "Centimeter", "cm", false, false, QT_TRANSLATE_NOOP("UnitsApi", "Building Euro (cm, m², m³)") , false,
     {
         { "Length", {
-            { 0              , "cm"          , 10.0             }}
+            { 0              , q("CentiMetre")               }}
         },
         { "Area", {
-            { 0              , "m^2"         , 1e6              }}
+            { 0              , q("SquareMetre")              }}
         },
         { "Volume", {
-            { 0              , "m^3"         , 1e9              }}
+            { 0              , q("CubicMetre")               }}
         },
         { "Power", {
-            { 0              , "W"           , 1e6              }}
+            { 0              , q("Watt")                     }}
         },
         { "ElectricPotential", {
-            { 0              , "V"           , 1e6              }}
+            { 0              , q("Volt")                     }}
         },
         { "HeatFlux", {
-            { 0              , "W/m^2"       , 1.0              }}
+            { 0              , q("WattPerSqMetre")           }}
         },
         { "Velocity", {
-            { 0              , "mm/min"      , 1.0 / 60         }}
+            { 0              , q("MilliMetrePerMinute")      }}
         }
     }
 };
@@ -580,10 +592,10 @@ inline const UnitsSchemaSpec s6
 { 8, "FEM", "mm", false , false , QT_TRANSLATE_NOOP("UnitsApi", "FEM (mm, N, s)"), false,
     {
         { "Length", {
-            { 0             , "mm"           , 1.0               }}
+            { 0             , q("MilliMetre")                }}
         },
         { "Mass",   {
-            { 0             , "t"            , 1e3               }}
+            { 0             , q("Ton")                       }}
         }
     }
 };
@@ -592,36 +604,36 @@ inline const UnitsSchemaSpec s7
 { 2, "Imperial", "in", false, false, QT_TRANSLATE_NOOP("UnitsApi", "US customary (in, lb)"), false,
     {
         { "Length", {
-            { 0.00000254      , "in"       , in                },
-            { 2.54            , "thou"     , in / 1000         },
-            { 304.8           , "\""       , in                },
-            { 914.4           , "'"        , ft                },
-            { 1'609'344.0     , "yd"       , yd                },
-            { 1'609'344'000.0 , "mi"       , mi                },
-            { 0               , "in"       , in                }}
+            { 0.00000254      , q("Inch")                    },
+            { 2.54            , q("Thou")                    },
+            { 304.8           , q("InchMark")                },
+            { 914.4           , q("FootMark")                },
+            { 1'609'344.0     , q("Yard")                    },
+            { 1'609'344'000.0 , q("Mile")                    },
+            { 0               , q("Inch")                    }}
         },
         { "Angle", {
-            { 0               , "°"        , 1.0               }}
+            { 0               , q("Degree")                  }}
         },
         { "Area", {
-            { 0               , "in^2"     , in * in           }}
+            { 0               , q("SquareInch")              }}
         },
         { "Volume", {
-            { 0               , "in^3"     , in * in * in      }}
+            { 0               , q("CubicInch")               }}
         },
         { "Mass", {
-            { 0               , "lb"       , lb                }}
+            { 0               , q("Pound")                   }}
         },
         { "Pressure", {
-            { 1000 * psi      , "psi"      , psi               },
-            { 1000000 * psi   , "ksi"      , 1000 * psi        },
-            { 0               , "psi"      , psi               }}
+            { 1000 * psi      , q("PSI")                     },
+            { 1000000 * psi   , q("KSI")                     },
+            { 0               , q("PSI")                     }}
         },
         { "Stiffness", {
-            { 0               , "lbf/in"   , lbf / in * 1000   }}
+            { 0               , q("PoundForcePerInch")       }}
         },
         { "Velocity", {
-            { 0               , "in/min"   , in / 60           }}
+            { 0               , q("InchPerMinute")           }}
         }
     }
 };
@@ -629,25 +641,25 @@ inline const UnitsSchemaSpec s7
 inline const UnitsSchemaSpec s8
 { 5, "ImperialBuilding", "ft", true, false , QT_TRANSLATE_NOOP("UnitsApi", "Building US (ft-in, sqft, cft)"), false,
     {
-        { "Length"   , {{ 0   , "toFractional"    , 0              }}},  // <== !
-        { "Angle"    , {{ 0   , "°"               , 1.0            }}},
-        { "Area"     , {{ 0   , "sqft"            , ft * ft        }}},
-        { "Volume"   , {{ 0   , "cft"             , ft * ft * ft   }}},
-        { "Velocity" , {{ 0   , "in/min"          , in / 60        }}}
+        { "Length"   , {{ 0   , nullptr, "toFractional"          }}},
+        { "Angle"    , {{ 0   , q("Degree")                      }}},
+        { "Area"     , {{ 0   , q("SquareFoot")                  }}},
+        { "Volume"   , {{ 0   , q("CubicFoot")                   }}},
+        { "Velocity" , {{ 0   , q("InchPerMinute")               }}}
     }
 };
 
 inline const UnitsSchemaSpec s9
 { 7, "ImperialCivil", "ft", false, true, QT_TRANSLATE_NOOP("UnitsApi", "Imperial for Civil Eng (ft, lb, mph)"), false,
     {
-        { "Length"   , {{ 0   , "ft"    , ft                       }}},
-        { "Area"     , {{ 0   , "ft^2"  , ft * ft                  }}},
-        { "Volume"   , {{ 0   , "ft^3"  , ft * ft * ft             }}},
-        { "Mass"     , {{ 0   , "lb"    , lb                       }}},
-        { "Pressure" , {{ 0   , "psi"   , psi                      }}},
-        { "Stiffness", {{ 0   , "lbf/in", lbf / in * 1000          }}},
-        { "Velocity" , {{ 0   , "mph"   , mi / 3600                }}},
-        { "Angle"    , {{ 0   , "toDMS" , 0                        }}}  // <== !
+        { "Length"   , {{ 0   , q("Foot")                        }}},
+        { "Area"     , {{ 0   , q("SquareFoot2")                 }}},
+        { "Volume"   , {{ 0   , q("CubicFoot2")                  }}},
+        { "Mass"     , {{ 0   , q("Pound")                       }}},
+        { "Pressure" , {{ 0   , q("PSI")                         }}},
+        { "Stiffness", {{ 0   , q("PoundForcePerInch")           }}},
+        { "Velocity" , {{ 0   , q("MilePerHour")                 }}},
+        { "Angle"    , {{ 0   , nullptr, "toDMS"                 }}}
     }
 };
 
@@ -773,7 +785,7 @@ inline const std::map<std::string, std::function<std::string(double, std::size_t
 };  // clang-format on
 
 inline std::string runSpecial(
-    const std::string& name,
+    std::string_view name,
     const double value,
     const std::size_t precision,
     const std::size_t denominator,
@@ -781,8 +793,9 @@ inline std::string runSpecial(
     std::string& unitString
 )
 {
-    return specials.contains(name)
-        ? specials.at(name)(value, precision, denominator, factor, unitString)
+    const auto key = std::string(name);
+    return specials.contains(key)
+        ? specials.at(key)(value, precision, denominator, factor, unitString)
         : "";
 }
 

@@ -29,11 +29,11 @@
 #include <QString>
 
 #include "Quantity.h"
+#include "QuantitySpecsData.h"
 #include "UnitsSchema.h"
 #include "UnitsSchemasData.h"
 #include "UnitsSchemasSpecs.h"
 #include "Exception.h"
-#include "Quantity.h"
 
 using Base::UnitsSchema;
 using Base::UnitsSchemaSpec;
@@ -82,10 +82,10 @@ std::string UnitsSchema::translate(const Quantity& quant, double& factor, std::s
         );
     }
 
-    if (unitSpec->factor == 0) {
+    if (!unitSpec->quantity) {
         const QuantityFormat& format = quant.getFormat();
         return UnitsSchemasData::runSpecial(
-            unitSpec->unitString,
+            unitSpec->specialFunction,
             value,
             format.getPrecision(),
             format.getDenominator(),
@@ -94,8 +94,8 @@ std::string UnitsSchema::translate(const Quantity& quant, double& factor, std::s
         );
     }
 
-    factor = unitSpec->factor;
-    unitString = unitSpec->unitString;
+    factor = unitSpec->quantity->value;
+    unitString = std::string(unitSpec->quantity->symbol);
 
     return toLocale(quant, factor, unitString);
 }

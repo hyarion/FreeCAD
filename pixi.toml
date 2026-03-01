@@ -170,6 +170,7 @@ configure-release = { cmd = [ "cmake", "--preset", "conda-macos-release" ], depe
 [target.osx-arm64.tasks]
 configure-debug = { cmd = [ "cmake", "--preset", "conda-macos-debug" ], depends-on = ["initialize"], env={ CFLAGS="", CXXFLAGS="", DEBUG_CFLAGS="", DEBUG_CXXFLAGS="" }}
 configure-release = { cmd = [ "cmake", "--preset", "conda-macos-release" ], depends-on = ["initialize"], env={ CFLAGS="", CXXFLAGS="", DEBUG_CFLAGS="", DEBUG_CXXFLAGS="" }}
+configure-asan = { cmd = [ "cmake", "--preset", "conda-macos-debug", "-DCMAKE_CXX_FLAGS_DEBUG=-g -O0 -DFC_DEBUG -fsanitize=address -fno-omit-frame-pointer", "-DCMAKE_C_FLAGS_DEBUG=-g -O0 -fsanitize=address -fno-omit-frame-pointer", "-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address", "-DCMAKE_SHARED_LINKER_FLAGS=-fsanitize=address", "-B", "build/asan" ], depends-on = ["initialize"], env={ CFLAGS="", CXXFLAGS="", DEBUG_CFLAGS="", DEBUG_CXXFLAGS="" }}
 
 [target.win-64.tasks]
 configure-debug = { cmd = [ "cmake", "--preset", "conda-windows-debug", "-DCMAKE_GENERATOR_PLATFORM=", "-DCMAKE_GENERATOR_TOOLSET=" ], depends-on = ["initialize"], env={ CFLAGS="", CXXFLAGS="", DEBUG_CFLAGS="", DEBUG_CXXFLAGS="" }}
@@ -188,9 +189,12 @@ freecad = [{ task = "freecad-debug" }]
 
 build-debug = { cmd = ["cmake", "--build", "build/debug"]}
 build-release = { cmd = ["cmake", "--build", "build/release"]}
+build-asan = { cmd = ["cmake", "--build", "build/asan"]}
 install-debug = { cmd = ["cmake", "--install", "build/debug"]}
 install-release = { cmd = ["cmake", "--install", "build/release"]}
 test-debug = { cmd = ["ctest", "--test-dir", "build/debug"]}
 test-release = { cmd = ["ctest", "--test-dir", "build/release"]}
+test-asan = { cmd = ["ctest", "--test-dir", "build/asan"]}
 freecad-debug = "build/debug/bin/FreeCAD"
 freecad-release = "build/release/bin/FreeCAD"
+freecad-asan = "build/asan/bin/FreeCAD"

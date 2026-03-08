@@ -7,6 +7,8 @@ macro(SetupFreetype)
             message("===============================================================\n"
                     "FreeType2 not found. Part module will lack of makeWireString().\n"
                     "===============================================================\n")
+        else()
+            find_package(harfbuzz CONFIG REQUIRED)
         endif(NOT FREETYPE_FOUND)
     endif(FREECAD_USE_FREETYPE)
 

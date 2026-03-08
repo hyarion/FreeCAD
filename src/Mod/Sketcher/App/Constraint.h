@@ -26,6 +26,7 @@
 #define SKETCHER_CONSTRAINT_H
 
 #include <array>
+#include <memory>
 
 #include <Base/Persistence.h>
 #include <Base/Quantity.h>
@@ -33,6 +34,11 @@
 #include <boost/uuid/uuid_generators.hpp>
 
 #include "GeoEnum.h"
+
+namespace Part
+{
+class Geometry;
+}
 
 
 // Flipping this to 0 removes old legazy members First, FirstPos, Second...
@@ -108,7 +114,7 @@ public:
     Constraint(Constraint&&) = delete;
     Constraint& operator=(Constraint&&) = delete;
 
-    ~Constraint() override = default;
+    ~Constraint() override;
 
     // does copy the tag, it will be treated as a rename by the expression engine.
     Constraint* clone() const;
@@ -166,7 +172,7 @@ public:
     friend class PropertyConstraintList;
 
 private:
-    Constraint(const Constraint&) = default;  // only for internal use
+    Constraint(const Constraint& other);  // only for internal use, deep-clones canonicalGeometry
 
 private:
     double Value {0.0};
@@ -251,6 +257,13 @@ public:
     void setFont(const std::string& font);
     bool getIsTextHeight() const;
     void setIsTextHeight(bool val);
+
+    /// Canonical geometry for Group/Text constraints (elements 1+ in canonical frame).
+    /// The canonical frame is (0,0)->(1,0). World positions are derived from this
+    /// plus the current frame line, eliminating floating-point drift.
+    std::vector<std::unique_ptr<Part::Geometry>> canonicalGeometry;
+    std::vector<const Part::Geometry*> getCanonicalGeometry() const;
+    bool hasCanonicalGeometry() const;
 
 #ifdef SKETCHER_CONSTRAINT_USE_LEGACY_ELEMENTS
     // Deprecated, use getElement/setElement instead

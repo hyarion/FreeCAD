@@ -1030,7 +1030,8 @@ QMap<QString, QString> SketcherGui::findAvailableFontFiles()
 
         QDirIterator it(
             path,
-            QStringList() << QString::fromUtf8("*.ttf") << QString::fromUtf8("*.otf"),
+            QStringList() << QString::fromUtf8("*.ttf") << QString::fromUtf8("*.otf")
+                          << QString::fromUtf8("*.ttc"),
             QDir::Files,
             QDirIterator::Subdirectories
         );

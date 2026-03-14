@@ -30,6 +30,8 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <Inventor/SoPickedPoint.h>
+#include <Inventor/nodes/SoCamera.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/draggers/SoDragger.h>
 #include <Inventor/events/SoKeyboardEvent.h>
@@ -611,7 +613,10 @@ bool ViewProviderAssembly::tryMouseMove(const SbVec2s& cursorPos, Gui::View3DInv
         );
         bool solveOnMove = hGrp->GetBool("SolveOnMove", true);
         if (solveOnMove && dragMode != DragMode::TranslationNoSolve) {
-            assemblyPart->doDragStep();
+            // Project mouse onto the camera-parallel plane through the part
+            SbVec3f dragVec = viewer->getPointOnXYPlaneOfPlacement(cursorPos, dragPlanePlc);
+            Base::Vector3d mousePos3D(dragVec[0], dragVec[1], dragVec[2]);
+            assemblyPart->doDragStep(mousePos3D);
         }
         else {
             assemblyPart->redrawJointPlacements(assemblyPart->getJoints());
@@ -1109,7 +1114,55 @@ void ViewProviderAssembly::tryInitMove(const SbVec2s& cursorPos, Gui::View3DInve
         for (auto& movingObj : docsToMove) {
             dragParts.push_back(movingObj.obj);
         }
-        assemblyPart->preDrag(dragParts);
+
+        // Extract camera view direction for drag target box orientation
+        SoCamera* camera = viewer->getSoRenderManager()->getCamera();
+        SbVec3f camDir;
+        camera->orientation.getValue().multVec(SbVec3f(0, 0, -1), camDir);
+        Base::Vector3d cameraViewDir(camDir[0], camDir[1], camDir[2]);
+
+        // Build a camera-parallel plane through the joint position (where the user clicks)
+        // Construct rotation where Z = cameraViewDir (same method as AssemblyObject)
+        Base::Vector3d zAxis = cameraViewDir;
+        zAxis.Normalize();
+        Base::Vector3d worldUp(0, 0, 1);
+        if (std::abs(zAxis.Dot(worldUp)) > 0.99) {
+            worldUp = Base::Vector3d(0, 1, 0);
+        }
+        Base::Vector3d xAxis = worldUp.Cross(zAxis);
+        xAxis.Normalize();
+        Base::Vector3d yAxis = zAxis.Cross(xAxis);
+        Base::Matrix4D mat;
+        mat[0][0] = xAxis.x;
+        mat[0][1] = yAxis.x;
+        mat[0][2] = zAxis.x;
+        mat[1][0] = xAxis.y;
+        mat[1][1] = yAxis.y;
+        mat[1][2] = zAxis.y;
+        mat[2][0] = xAxis.z;
+        mat[2][1] = yAxis.z;
+        mat[2][2] = zAxis.z;
+        Base::Rotation camRot(mat);
+
+        // Get the actual surface hit point via raypick for correct depth (world space)
+        Base::Vector3d planeOrigin;
+        SoPickedPoint* pp = viewer->pickPoint(cursorPos);
+        if (pp) {
+            SbVec3f worldPt = pp->getPoint();
+            planeOrigin = Base::Vector3d(worldPt[0], worldPt[1], worldPt[2]);
+            delete pp;
+        }
+        else {
+            // Fallback to joint position if raypick misses
+            planeOrigin = jcsGlobalPlc.getPosition();
+        }
+        dragPlanePlc = Base::Placement(planeOrigin, camRot);
+
+        // Project mouse onto that plane to get the pick point at correct depth
+        SbVec3f pickVec = viewer->getPointOnXYPlaneOfPlacement(cursorPos, dragPlanePlc);
+        Base::Vector3d pickPoint(pickVec[0], pickVec[1], pickVec[2]);
+
+        assemblyPart->preDrag(dragParts, pickPoint, cameraViewDir);
     }
     else {
         assemblyPart->redrawJointPlacements(assemblyPart->getJoints());

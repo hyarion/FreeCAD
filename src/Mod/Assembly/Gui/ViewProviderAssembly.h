@@ -237,6 +237,7 @@ public:
     Base::Placement jcsPlc;
     Base::Placement jcsGlobalPlc;
     Base::Placement draggerInitPlc;
+    Base::Placement dragPlanePlc;  // camera-parallel plane through the dragged part
 
     App::DocumentObject* movingJoint;
 

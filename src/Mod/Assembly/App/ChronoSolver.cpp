@@ -677,12 +677,21 @@ int ChronoAssembly::runKinematic()
     return 0;
 }
 
-void ChronoAssembly::preDrag()
+void ChronoAssembly::preDrag(const DragContext& ctx)
 {
     sys->DoAssembly(chrono::AssemblyLevel::POSITION);
 
     // Snapshot all body positions so the first drag step has a known-good start.
     saveDragStepStart();
+
+    dragCtx = ctx;
+
+    // Create a fixed mouse body at the pick point.
+    mouseBody = chrono_types::make_shared<chrono::ChBody>();
+    mouseBody->SetName("__mouse__");
+    mouseBody->SetPos(chrono::ChVector3d(ctx.pickPoint.x, ctx.pickPoint.y, ctx.pickPoint.z));
+    mouseBody->SetFixed(true);
+    sys->AddBody(mouseBody);
 }
 
 void ChronoAssembly::saveDragStepStart()
@@ -694,94 +703,96 @@ void ChronoAssembly::saveDragStepStart()
     }
 }
 
-void ChronoAssembly::dragStep(std::vector<std::shared_ptr<Part>> draggedParts)
+void ChronoAssembly::dragStep(std::vector<std::shared_ptr<Part>> draggedParts, Base::Vector3d mousePos3D)
 {
-    // Collect dragged bodies and their target positions (already set by pushPlacement).
-    struct BodyTarget
-    {
-        std::shared_ptr<chrono::ChBody> body;
-        chrono::ChVector3d targetPos;
-        chrono::ChQuaternion<double> targetRot;
-        chrono::ChVector3d startPos;
-        chrono::ChQuaternion<double> startRot;
-    };
-    std::vector<BodyTarget> targets;
-    for (const auto& part : draggedParts) {
-        auto chronoPart = std::static_pointer_cast<ChronoPart>(part);
-        auto body = chronoPart->getBody();
-        BodyTarget t;
-        t.body = body;
-        t.targetPos = body->GetPos();
-        t.targetRot = body->GetRot();
-        auto it = dragStepStart.find(body.get());
-        if (it != dragStepStart.end()) {
-            t.startPos = it->second.pos;
-            t.startRot = it->second.rot;
-        }
-        else {
-            t.startPos = t.targetPos;
-            t.startRot = t.targetRot;
-        }
-        targets.push_back(t);
+    if (!mouseBody) {
+        return;
     }
 
-    if (debugLogging) {
-        FC_MSG("=== dragStep: " << targets.size() << " dragged body/bodies ===");
-        for (const auto& t : targets) {
-            auto delta = (t.targetPos - t.startPos).Length();
-            FC_MSG(
-                "  dragged '" << t.body->GetName() << "'"
-                              << "  start=(" << t.startPos.x() << "," << t.startPos.y() << ","
-                              << t.startPos.z() << ")"
-                              << "  target=(" << t.targetPos.x() << "," << t.targetPos.y() << ","
-                              << t.targetPos.z() << ")"
-                              << "  delta=" << delta
-            );
-        }
-    }
+    // Move the mouse body to the new mouse position.
+    mouseBody->SetPos(chrono::ChVector3d(mousePos3D.x, mousePos3D.y, mousePos3D.z));
 
-    // Move each dragged body to the interpolated position for this sub-step.
-    for (const auto& t : targets) {
-        t.body->SetPos(t.startPos + (t.targetPos - t.startPos));
-        // Normalized linear interpolation (NLERP) of the rotation.
-        // For the small per-step rotations involved in interactive drag this
-        // is a good approximation of SLERP and avoids relying on a
-        // quaternion slerp API that Chrono does not expose directly.
-        chrono::ChQuaternion<double> q(
-            t.startRot.e0() + (t.targetRot.e0() - t.startRot.e0()),
-            t.startRot.e1() + (t.targetRot.e1() - t.startRot.e1()),
-            t.startRot.e2() + (t.targetRot.e2() - t.startRot.e2()),
-            t.startRot.e3() + (t.targetRot.e3() - t.startRot.e3())
+    // Create the mouse constraint linking dragged part to mouse body.
+    // For now we constrain only the first dragged part.
+    if (!mouseLink && !draggedParts.empty()) {
+        auto chronoPart = std::static_pointer_cast<ChronoPart>(draggedParts[0]);
+        auto draggedBody = chronoPart->getBody();
+
+        // Compute pick point in part-local coordinates so the constraint
+        // attaches at the click location, not the body origin.
+        auto pickWorld
+            = chrono::ChVector3d(dragCtx.pickPoint.x, dragCtx.pickPoint.y, dragCtx.pickPoint.z);
+        // Transform world pick point to body-local: R^-1 * (pickWorld - bodyPos)
+        auto localPickPos = draggedBody->GetRot().GetInverse().Rotate(
+            pickWorld - draggedBody->GetPos()
         );
-        q.Normalize();
-        t.body->SetRot(q);
+
+        // Use ChLinkLockSpherical (X,Y,Z only, rotation free) with identity frames
+        mouseLink = chrono_types::make_shared<chrono::ChLinkLockSpherical>();
+        mouseLink->SetName("__mouse_constraint__");
+
+        // Frame on mouse body: at its origin (= mouse position)
+        chrono::ChFrame<double> mouseFrame(chrono::VNULL, chrono::QUNIT);
+        // Frame on dragged body: at pick offset in body-local coords
+        chrono::ChFrame<double> partFrame(localPickPos, chrono::QUNIT);
+
+        mouseLink->Initialize(mouseBody, draggedBody, true, mouseFrame, partFrame);
+        sys->AddLink(mouseLink);
+
+        // Tight compliance so the constraint has real influence on the solve
+        double cfm = 1e-4;
+        auto& mask = mouseLink->GetMask();
+        for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+            mask.GetConstraint(i).SetComplianceTerm(cfm);
+        }
+
+        FC_MSG(
+            "Mouse constraint: pickWorld=("
+            << pickWorld.x() << "," << pickWorld.y() << "," << pickWorld.z() << ")"
+            << " localPick=(" << localPickPos.x() << "," << localPickPos.y() << ","
+            << localPickPos.z() << ")"
+            << " bodyPos=(" << draggedBody->GetPos().x() << "," << draggedBody->GetPos().y() << ","
+            << draggedBody->GetPos().z() << ")"
+        );
+    }
+
+    // Snapshot all body states before solving so we can reject bad solves
+    std::map<chrono::ChBody*, BodyDragStart> preSolveState;
+    for (const auto& part : parts) {
+        auto body = part->getBody();
+        preSolveState[body.get()] = {body->GetPos(), body->GetRot()};
     }
 
     bool ok = sys->DoAssembly(chrono::AssemblyLevel::POSITION);
 
-    if (debugLogging) {
-        FC_MSG("=== dragStep complete: post-solve structure ===");
-        dumpStructure();
-    }
+    // Check if assembly joints started failing — if so, we've hit a kinematic limit
+    {
+        bool jointsBroken = false;
+        double maxJointViolation = 0;
 
-    // Fix quaternion sign: DoAssembly can flip a body's quaternion to the
-    // antipodal representation (-q instead of +q, same physical rotation).
-    // If the sign differs from our target quaternion, the NLERP in the NEXT
-    // drag step would interpolate through the antipodal path (≈360° rotation).
-    // Canonicalize each dragged body's quaternion so it lies in the same
-    // hemisphere as the target.
-    //
-    // NOTE: We deliberately do NOT restore the body's position to t.targetPos.
-    // DoAssembly has adjusted the dragged body to satisfy hard constraints
-    // (e.g., keeping a revolute pivot coincident).  Forcing the position back
-    // to the exact user-dragged target re-introduces that constraint violation,
-    // and saveDragStepStart() would then record an inconsistent state that
-    // causes Newton-Raphson in the next step to diverge, producing growing
-    // positional drift in the joint markers.
-    for (const auto& t : targets) {
-        auto rot = t.body->GetRot();
-        if (rot.Dot(t.targetRot) < 0.0) {
-            t.body->SetRot(chrono::ChQuaternion<double>(-rot.e0(), -rot.e1(), -rot.e2(), -rot.e3()));
+        for (const auto& link : sys->GetLinks()) {
+            // Skip the mouse constraint itself
+            if (link.get() == mouseLink.get()) {
+                continue;
+            }
+            auto violation = link->GetConstraintViolation();
+            double vNorm = violation.norm();
+            maxJointViolation = std::max(maxJointViolation, vNorm);
+            if (vNorm > 1.0) {  // 1mm tolerance for joint violations
+                jointsBroken = true;
+            }
+        }
+
+        if (!ok || jointsBroken) {
+            // Restore all bodies to pre-solve state
+            for (const auto& part : parts) {
+                auto body = part->getBody();
+                auto it = preSolveState.find(body.get());
+                if (it != preSolveState.end()) {
+                    body->SetPos(it->second.pos);
+                    body->SetRot(it->second.rot);
+                }
+            }
         }
     }
 
@@ -795,6 +806,17 @@ void ChronoAssembly::postDrag()
         FC_MSG("=== postDrag: final assembly structure ===");
         dumpStructure();
     }
+
+    // Clean up mouse constraint and body
+    if (mouseLink) {
+        sys->RemoveLink(mouseLink);
+        mouseLink.reset();
+    }
+    if (mouseBody) {
+        sys->RemoveBody(mouseBody);
+        mouseBody.reset();
+    }
+
     dragStepStart.clear();
 }
 

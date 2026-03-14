@@ -521,104 +521,98 @@ bool ViewProviderAssembly::tryMouseMove(const SbVec2s& cursorPos, Gui::View3DInv
             newPos = Base::Vector3d(vec[0], vec[1], vec[2]);
         }
 
-        for (auto& objToMove : docsToMove) {
-            App::DocumentObject* obj = objToMove.obj;
-            auto* propPlacement = obj->getPlacementProperty();
-            if (propPlacement) {
-                Base::Placement plc = objToMove.plc;
-
-                if (dragMode == DragMode::RotationOnPlane) {
-                    Base::Vector3d center = jcsGlobalPlc.getPosition();
-                    Base::Vector3d norm = jcsGlobalPlc.getRotation().multVec(
-                        Base::Vector3d(0., 0., -1.)
-                    );
-                    double angle
-                        = (newPosRot - center).GetAngleOriented(initialPositionRot - center, norm);
-                    Base::Rotation zRotation = Base::Rotation(Base::Vector3d(0., 0., 1.), angle);
-                    Base::Placement rotatedGlovalJcsPlc = jcsGlobalPlc
-                        * Base::Placement(Base::Vector3d(), zRotation);
-                    Base::Placement jcsPlcRelativeToPart = plc.inverse() * jcsGlobalPlc;
-                    plc = rotatedGlovalJcsPlc * jcsPlcRelativeToPart.inverse();
-                }
-                else if (dragMode == DragMode::Ball) {
-                    Base::Vector3d center = jcsGlobalPlc.getPosition();
-                    // Vectors from joint center to initial click and current drag position
-                    Base::Vector3d u = initialPosition - center;
-                    Base::Vector3d v = newPos - center;
-
-                    // Ensure vectors are valid to prevent singularities
-                    if (u.Length() > Precision::Confusion() && v.Length() > Precision::Confusion()) {
-                        // Calculate rotation that moves vector u to v
-                        Base::Rotation rot;
-                        rot.setValue(u, v);
-
-                        // Apply this rotation to the global joint placement (around the joint center)
-                        Base::Placement rotatedGlobalJcsPlc = jcsGlobalPlc;
-                        rotatedGlobalJcsPlc.setRotation(rot * jcsGlobalPlc.getRotation());
-
-                        // Calculate the initial offset of the part relative to the joint
-                        // and apply the new global joint placement to find the new part placement.
-                        Base::Placement jcsPlcRelativeToPart = plc.inverse() * jcsGlobalPlc;
-                        plc = rotatedGlobalJcsPlc * jcsPlcRelativeToPart.inverse();
-                    }
-                }
-                else if (dragMode == DragMode::TranslationOnAxis) {
-                    Base::Vector3d pos = plc.getPosition() + (newPos - initialPosition);
-                    plc.setPosition(pos);
-                }
-                else if (dragMode == DragMode::TranslationOnAxisAndRotationOnePlane) {
-                    Base::Vector3d pos = plc.getPosition() + (newPos - initialPosition);
-                    plc.setPosition(pos);
-
-                    Base::Placement newJcsGlobalPlc = jcsGlobalPlc;
-                    newJcsGlobalPlc.setPosition(
-                        jcsGlobalPlc.getPosition() + (newPos - initialPosition)
-                    );
-
-                    Base::Vector3d center = newJcsGlobalPlc.getPosition();
-                    Base::Vector3d norm = newJcsGlobalPlc.getRotation().multVec(
-                        Base::Vector3d(0., 0., -1.)
-                    );
-
-                    Base::Vector3d projInitialPositionRot
-                        = initialPositionRot.ProjectToPlane(newJcsGlobalPlc.getPosition(), norm);
-                    boost::ignore_unused(projInitialPositionRot);
-                    double angle
-                        = (newPosRot - center).GetAngleOriented(initialPositionRot - center, norm);
-                    Base::Rotation zRotation = Base::Rotation(Base::Vector3d(0., 0., 1.), angle);
-                    Base::Placement rotatedGlovalJcsPlc = newJcsGlobalPlc
-                        * Base::Placement(Base::Vector3d(), zRotation);
-                    Base::Placement jcsPlcRelativeToPart = plc.inverse() * newJcsGlobalPlc;
-                    plc = rotatedGlovalJcsPlc * jcsPlcRelativeToPart.inverse();
-                }
-                else if (dragMode == DragMode::TranslationOnPlane) {
-                    Base::Vector3d pos = plc.getPosition() + (newPos - initialPosition);
-                    plc.setPosition(pos);
-                }
-                else {  // DragMode::Translation
-                    Base::Vector3d delta = newPos - prevPosition;
-
-                    Base::Vector3d pos = propPlacement->getValue().getPosition() + delta;
-                    plc.setPosition(pos);
-                }
-                propPlacement->setValue(plc);
-            }
-        }
-
-        prevPosition = newPos;
-
         auto* assemblyPart = getObject<AssemblyObject>();
         ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath(
             "User parameter:BaseApp/Preferences/Mod/Assembly"
         );
         bool solveOnMove = hGrp->GetBool("SolveOnMove", true);
+
         if (solveOnMove && dragMode != DragMode::TranslationNoSolve) {
-            // Project mouse onto the camera-parallel plane through the part
+            // Mouse body approach: solver is sole authority on part positions.
+            // Just pass mouse position — no direct part placement updates.
             SbVec3f dragVec = viewer->getPointOnXYPlaneOfPlacement(cursorPos, dragPlanePlc);
             Base::Vector3d mousePos3D(dragVec[0], dragVec[1], dragVec[2]);
             assemblyPart->doDragStep(mousePos3D);
         }
         else {
+            // No solver: move parts directly via GUI
+            for (auto& objToMove : docsToMove) {
+                App::DocumentObject* obj = objToMove.obj;
+                auto* propPlacement = obj->getPlacementProperty();
+                if (propPlacement) {
+                    Base::Placement plc = objToMove.plc;
+
+                    if (dragMode == DragMode::RotationOnPlane) {
+                        Base::Vector3d center = jcsGlobalPlc.getPosition();
+                        Base::Vector3d norm = jcsGlobalPlc.getRotation().multVec(
+                            Base::Vector3d(0., 0., -1.)
+                        );
+                        double angle
+                            = (newPosRot - center).GetAngleOriented(initialPositionRot - center, norm);
+                        Base::Rotation zRotation = Base::Rotation(Base::Vector3d(0., 0., 1.), angle);
+                        Base::Placement rotatedGlovalJcsPlc = jcsGlobalPlc
+                            * Base::Placement(Base::Vector3d(), zRotation);
+                        Base::Placement jcsPlcRelativeToPart = plc.inverse() * jcsGlobalPlc;
+                        plc = rotatedGlovalJcsPlc * jcsPlcRelativeToPart.inverse();
+                    }
+                    else if (dragMode == DragMode::Ball) {
+                        Base::Vector3d center = jcsGlobalPlc.getPosition();
+                        Base::Vector3d u = initialPosition - center;
+                        Base::Vector3d v = newPos - center;
+
+                        if (u.Length() > Precision::Confusion()
+                            && v.Length() > Precision::Confusion()) {
+                            Base::Rotation rot;
+                            rot.setValue(u, v);
+                            Base::Placement rotatedGlobalJcsPlc = jcsGlobalPlc;
+                            rotatedGlobalJcsPlc.setRotation(rot * jcsGlobalPlc.getRotation());
+                            Base::Placement jcsPlcRelativeToPart = plc.inverse() * jcsGlobalPlc;
+                            plc = rotatedGlobalJcsPlc * jcsPlcRelativeToPart.inverse();
+                        }
+                    }
+                    else if (dragMode == DragMode::TranslationOnAxis) {
+                        Base::Vector3d pos = plc.getPosition() + (newPos - initialPosition);
+                        plc.setPosition(pos);
+                    }
+                    else if (dragMode == DragMode::TranslationOnAxisAndRotationOnePlane) {
+                        Base::Vector3d pos = plc.getPosition() + (newPos - initialPosition);
+                        plc.setPosition(pos);
+
+                        Base::Placement newJcsGlobalPlc = jcsGlobalPlc;
+                        newJcsGlobalPlc.setPosition(
+                            jcsGlobalPlc.getPosition() + (newPos - initialPosition)
+                        );
+
+                        Base::Vector3d center = newJcsGlobalPlc.getPosition();
+                        Base::Vector3d norm = newJcsGlobalPlc.getRotation().multVec(
+                            Base::Vector3d(0., 0., -1.)
+                        );
+
+                        Base::Vector3d projInitialPositionRot
+                            = initialPositionRot.ProjectToPlane(newJcsGlobalPlc.getPosition(), norm);
+                        boost::ignore_unused(projInitialPositionRot);
+                        double angle
+                            = (newPosRot - center).GetAngleOriented(initialPositionRot - center, norm);
+                        Base::Rotation zRotation = Base::Rotation(Base::Vector3d(0., 0., 1.), angle);
+                        Base::Placement rotatedGlovalJcsPlc = newJcsGlobalPlc
+                            * Base::Placement(Base::Vector3d(), zRotation);
+                        Base::Placement jcsPlcRelativeToPart = plc.inverse() * newJcsGlobalPlc;
+                        plc = rotatedGlovalJcsPlc * jcsPlcRelativeToPart.inverse();
+                    }
+                    else if (dragMode == DragMode::TranslationOnPlane) {
+                        Base::Vector3d pos = plc.getPosition() + (newPos - initialPosition);
+                        plc.setPosition(pos);
+                    }
+                    else {  // DragMode::Translation
+                        Base::Vector3d delta = newPos - prevPosition;
+                        Base::Vector3d pos = propPlacement->getValue().getPosition() + delta;
+                        plc.setPosition(pos);
+                    }
+                    propPlacement->setValue(plc);
+                }
+            }
+
+            prevPosition = newPos;
             assemblyPart->redrawJointPlacements(assemblyPart->getJoints());
         }
     }
@@ -1113,7 +1107,22 @@ void ViewProviderAssembly::tryInitMove(const SbVec2s& cursorPos, Gui::View3DInve
         std::vector<App::DocumentObject*> dragParts;
         for (auto& movingObj : docsToMove) {
             dragParts.push_back(movingObj.obj);
+            auto* plcProp = movingObj.obj->getPlacementProperty();
+            Base::Vector3d objPos = plcProp ? plcProp->getValue().getPosition() : Base::Vector3d();
+            Base::Console().warning(
+                "Drag part: '%s' pos=(%.1f, %.1f, %.1f) sub='%s'\n",
+                movingObj.obj->getNameInDocument(),
+                objPos.x,
+                objPos.y,
+                objPos.z,
+                movingObj.sub.c_str()
+            );
         }
+        Base::Console().warning(
+            "dragMode=%d, movingJoint=%s\n",
+            static_cast<int>(dragMode),
+            movingJoint ? movingJoint->getNameInDocument() : "(none)"
+        );
 
         // Extract camera view direction for drag target box orientation
         SoCamera* camera = viewer->getSoRenderManager()->getCamera();

@@ -378,6 +378,13 @@ void AssemblyObject::preDrag(
     addObject(dragTargetBox);
     dragTargetBox->purgeTouched();
 
+    // Pass drag context to solver (creates mouse body + constraint)
+    Solver::Assembly::DragContext ctx;
+    ctx.pickPoint = pickPoint;
+    ctx.cameraViewDir = cameraViewDir;
+    ctx.cameraRotation = dragCameraRotation;
+    assembly->preDrag(ctx);
+
     /*
     // Create a large plane to visualize the projection plane
     dragPlane = getDocument()->addObject("Part::Plane", "DragPlane");
@@ -399,13 +406,33 @@ void AssemblyObject::doDragStep(Base::Vector3d mousePos3D)
 {
     // Update visualization box to follow mouse
     if (dragTargetBox) {
-        Base::Vector3d boxCenter = mousePos3D - dragCameraRotation.multVec(Base::Vector3d(5, 5, 5));
+        Base::Vector3d boxCenter = mousePos3D - dragCameraRotation.multVec(Base::Vector3d(5, 5, 0));
         dragTargetBox->getPlacementProperty()->setValue(Base::Placement(boxCenter, dragCameraRotation));
         dragTargetBox->purgeTouched();
     }
 
-    // Solver disabled for iteration 1 -- just redraw joint placements
-    redrawJointPlacements(getJoints(false));
+    try {
+        // Build solver parts list from dragged document objects
+        std::vector<std::shared_ptr<Solver::Part>> dragSolverParts;
+        for (auto& part : draggedParts) {
+            if (!part) {
+                continue;
+            }
+            dragSolverParts.push_back(getPart(part));
+        }
+
+        // Run solver — mouse body drives the dragged part via compliant constraint
+        assembly->dragStep(dragSolverParts, mousePos3D);
+
+        if (validateNewPlacements()) {
+            setNewPlacements();
+            redrawJointPlacements(getJoints(false));
+        }
+    }
+    catch (...) {
+        // If a solve step fails, just redraw joints for visual feedback
+        redrawJointPlacements(getJoints(false));
+    }
 }
 
 // getMbdPlacement has been removed; use solverPart->getPlacement() directly.

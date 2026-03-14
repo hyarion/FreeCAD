@@ -144,7 +144,8 @@ public:
     );
     int slidingPartIndex(App::DocumentObject* joint);
 
-    std::shared_ptr<Solver::Joint> makeJoint(App::DocumentObject* joint);
+    std::shared_ptr<Solver::Joint> makeJointOnly(App::DocumentObject* joint);
+    void addJointLimitsAndMotions(App::DocumentObject* joint, std::shared_ptr<Solver::Joint> solverJoint);
     std::shared_ptr<Solver::Joint> makeJointOfType(App::DocumentObject* joint, JointType jointType);
     std::shared_ptr<Solver::Joint> makeJointDistance(App::DocumentObject* joint);
 

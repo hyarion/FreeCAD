@@ -533,6 +533,17 @@ void ChronoAssembly::addLimit(std::shared_ptr<Limit> limit)
     const double value = evaluateLimitExpression(limit->getLimitExpression());
     const bool isMax = (limit->getType() == LimitType::LESS_THAN_OR_EQUAL);
 
+    // Log current joint state to check if initial pose is within limits
+    auto relCoords = link->GetRelCoordsys();
+    FC_MSG(
+        "addLimit: '" << limit->getName() << "'"
+                      << " class=" << static_cast<int>(limit->getLimitClass()) << " isMax=" << isMax
+                      << " value=" << value << " currentRelPos=(" << relCoords.pos.x() << ","
+                      << relCoords.pos.y() << "," << relCoords.pos.z() << ")"
+                      << " currentRelRot=(" << relCoords.rot.e0() << "," << relCoords.rot.e1()
+                      << "," << relCoords.rot.e2() << "," << relCoords.rot.e3() << ")"
+    );
+
     switch (limit->getLimitClass()) {
         case LimitClass::ROTATION_LIMIT:
             // The free rotational DOF for Revolute and Cylindrical joints is Rz

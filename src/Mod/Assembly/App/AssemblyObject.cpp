@@ -1116,16 +1116,48 @@ bool AssemblyObject::isPartConnected(App::DocumentObject* obj)
 
 void AssemblyObject::jointParts(std::vector<App::DocumentObject*> joints)
 {
+    // Two-pass approach: first create and add all joints (so limitableJoints is populated),
+    // then add limits and motions (which need to look up their joint by marker pair).
+    struct JointInfo
+    {
+        App::DocumentObject* docObj;
+        std::shared_ptr<Solver::Joint> solverJoint;
+    };
+    std::vector<JointInfo> createdJoints;
+
+    // Pass 1: create joints and add to assembly
     for (auto* joint : joints) {
         if (!joint) {
             continue;
         }
-
-        // makeJoint() also adds any associated limits and motions to the assembly
-        auto solverJoint = makeJoint(joint);
+        auto solverJoint = makeJointOnly(joint);
         if (solverJoint) {
             assembly->addJoint(solverJoint);
+            createdJoints.push_back({joint, solverJoint});
+            Base::Console().warning(
+                "jointParts P1: added joint '%s' type=%d\n",
+                joint->getFullName().c_str(),
+                static_cast<int>(getJointType(joint))
+            );
         }
+    }
+
+    // Pass 2: add limits and motions (joints are now registered in limitableJoints)
+    int jointIdx = 0;
+    int maxJointsWithLimits = 0;
+    for (auto& info : createdJoints) {
+        if (jointIdx >= maxJointsWithLimits) {
+            Base::Console().warning("jointParts P2: STOPPING after %d joints (bisect)\n", jointIdx);
+            break;
+        }
+        Base::Console().warning(
+            "jointParts P2: [%d] limits for '%s' type=%d\n",
+            jointIdx,
+            info.docObj->getFullName().c_str(),
+            static_cast<int>(getJointType(info.docObj))
+        );
+        addJointLimitsAndMotions(info.docObj, info.solverJoint);
+        jointIdx++;
     }
 }
 
@@ -1398,7 +1430,7 @@ std::shared_ptr<Solver::Joint> AssemblyObject::makeJointDistance(App::DocumentOb
     }
 }
 
-std::shared_ptr<Solver::Joint> AssemblyObject::makeJoint(App::DocumentObject* joint)
+std::shared_ptr<Solver::Joint> AssemblyObject::makeJointOnly(App::DocumentObject* joint)
 {
     if (!joint) {
         return nullptr;
@@ -1426,6 +1458,22 @@ std::shared_ptr<Solver::Joint> AssemblyObject::makeJoint(App::DocumentObject* jo
     solverJoint->setName(joint->getFullName());
     solverJoint->setMarkerI(fullMarkerNameI);
     solverJoint->setMarkerJ(fullMarkerNameJ);
+
+    return solverJoint;
+}
+
+void AssemblyObject::addJointLimitsAndMotions(
+    App::DocumentObject* joint,
+    std::shared_ptr<Solver::Joint> solverJoint
+)
+{
+    if (!joint || !solverJoint) {
+        return;
+    }
+
+    JointType jointType = getJointType(joint);
+    const auto& fullMarkerNameI = solverJoint->getMarkerI();
+    const auto& fullMarkerNameJ = solverJoint->getMarkerJ();
 
     // Add limits if needed. We do not add if this is a simulation or they might clash.
     if (motions.empty()) {
@@ -1624,8 +1672,6 @@ std::shared_ptr<Solver::Joint> AssemblyObject::makeJoint(App::DocumentObject* jo
             assembly->addMotion(transMotion);
         }
     }
-
-    return solverJoint;
 }
 
 std::string AssemblyObject::handleOneSideOfJoint(

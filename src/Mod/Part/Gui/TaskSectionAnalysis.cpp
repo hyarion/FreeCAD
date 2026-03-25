@@ -807,6 +807,10 @@ void SectionAnalysisWidget::onFlipToggled(bool on)
 
 void SectionAnalysisWidget::deferRecompute()
 {
+    // TEMP: bypass timer to measure raw execution time
+    recompute();
+    return;
+
     // Delay the expensive OCCT recompute so interactive dragging stays responsive.
     // The visual clip plane + plane quad update instantly via ViewProvider::updateData().
     // The cross-section faces (OCCT boolean) update 300ms after the last change.

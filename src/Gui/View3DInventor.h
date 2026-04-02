@@ -121,8 +121,8 @@ public:
      */
     void setCurrentViewMode(ViewMode b) override;
     RayPickInfo getObjInfoRay(Base::Vector3d* startvec, Base::Vector3d* dirvec);
-    const std::string& getCamera() const;
-    bool setCamera(const char* pCamera);
+    const std::string& getCamera() const override;
+    bool setCamera(const char* pCamera) override;
     void toggleClippingPlane();
     bool hasClippingPlane() const;
 

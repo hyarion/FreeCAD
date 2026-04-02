@@ -175,6 +175,18 @@ public:
         return false;
     }
 
+    virtual const std::string& getCamera() const
+    {
+        static const std::string dummy;
+        return dummy;
+    }
+
+    virtual bool setCamera(const char* pCamera)
+    {
+        (void)pCamera;
+        return false;
+    }
+
 public Q_SLOTS:
     virtual void setOverrideCursor(const QCursor&);
     virtual void restoreOverrideCursor();

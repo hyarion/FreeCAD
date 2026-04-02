@@ -1933,9 +1933,7 @@ void Document::RestoreDocFile(Base::Reader& reader)
             saveCameraSettings(ppReturn);
             try {
                 for (const auto& it : getMDIViews()) {
-                    if (auto* view3D = freecad_cast<View3DInventor*>(it)) {
-                        view3D->setCamera(cameraSettings.c_str());
-                    }
+                    it->setCamera(cameraSettings.c_str());
                 }
             }
             catch (const Base::Exception& e) {
@@ -2056,8 +2054,8 @@ void Document::SaveDocFile(Base::Writer& writer) const
 
     // save camera settings
     for (const auto& it : getMDIViews()) {
-        if (auto* view3D = freecad_cast<View3DInventor*>(it)) {
-            const std::string& camera = view3D->getCamera();
+        const std::string& camera = it->getCamera();
+        if (!camera.empty()) {
             if (saveCameraSettings(camera.c_str())) {
                 break;
             }
@@ -2527,7 +2525,7 @@ bool Document::canClose(bool checkModify, bool checkLink)
     return ok;
 }
 
-std::list<MDIView*> Document::getMDIViews() const
+std::list<MDIView*> Document::getMDIViews(bool includePassive) const
 {
     std::list<MDIView*> views;
     for (std::list<BaseView*>::const_iterator it = d->baseViews.begin(); it != d->baseViews.end();
@@ -2538,10 +2536,21 @@ std::list<MDIView*> Document::getMDIViews() const
         }
     }
 
+    if (includePassive) {
+        for (std::list<BaseView*>::const_iterator it = d->passiveViews.begin();
+             it != d->passiveViews.end();
+             ++it) {
+            auto view = dynamic_cast<MDIView*>(*it);
+            if (view) {
+                views.push_back(view);
+            }
+        }
+    }
+
     return views;
 }
 
-std::list<MDIView*> Document::getMDIViewsOfType(const Base::Type& typeId) const
+std::list<MDIView*> Document::getMDIViewsOfType(const Base::Type& typeId, bool includePassive) const
 {
     std::list<MDIView*> views;
     for (std::list<BaseView*>::const_iterator it = d->baseViews.begin(); it != d->baseViews.end();
@@ -2549,6 +2558,17 @@ std::list<MDIView*> Document::getMDIViewsOfType(const Base::Type& typeId) const
         auto view = dynamic_cast<MDIView*>(*it);
         if (view && view->isDerivedFrom(typeId)) {
             views.push_back(view);
+        }
+    }
+
+    if (includePassive) {
+        for (std::list<BaseView*>::const_iterator it = d->passiveViews.begin();
+             it != d->passiveViews.end();
+             ++it) {
+            auto view = dynamic_cast<MDIView*>(*it);
+            if (view && view->isDerivedFrom(typeId)) {
+                views.push_back(view);
+            }
         }
     }
 
@@ -2603,7 +2623,7 @@ MDIView* Document::getActiveView() const
     MDIView* active = getMainWindow()->activeWindow();
 
     // get all MDI views of the document
-    std::list<MDIView*> mdis = getMDIViews();
+    std::list<MDIView*> mdis = getMDIViews(true);
 
     // check whether the active view is part of this document
     bool ok = false;
@@ -2708,7 +2728,7 @@ void Document::setActiveWindow(Gui::MDIView* view)
     }
 
     // get all MDI views of the document
-    std::list<MDIView*> mdis = getMDIViews();
+    std::list<MDIView*> mdis = getMDIViews(true);
 
     // this document is not active
     if (std::ranges::find(mdis, active) == mdis.end()) {

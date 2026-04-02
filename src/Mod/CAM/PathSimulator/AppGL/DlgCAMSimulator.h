@@ -33,7 +33,6 @@
 
 #include <Mod/Part/App/TopoShape.h>
 #include <QOpenGLWidget>
-#include <QOpenGLExtraFunctions>
 #include <QPainter>
 #include <QTimer>
 #include <QExposeEvent>
@@ -76,7 +75,7 @@ public:
     float resolution;
 };
 
-class DlgCAMSimulator: public QOpenGLWidget, public QOpenGLExtraFunctions
+class DlgCAMSimulator: public QOpenGLWidget
 {
     Q_OBJECT
 

@@ -24,6 +24,7 @@
 
 #include "GuiDisplay.h"
 #include "OpenGlWrapper.h"
+#include "DlgCAMSimulator.h"
 #include "MillSimulation.h"
 #include <cstddef>
 #include <QToolTip>

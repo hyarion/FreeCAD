@@ -27,6 +27,7 @@
 #include "GlUtils.h"
 #include <math.h>
 #include <cstddef>
+#include <numbers>
 #include <vector>
 
 using namespace CAMSimulator;

@@ -24,6 +24,7 @@
 
 
 #include "DlgCAMSimulator.h"
+#include "OpenGlWrapper.h"
 #include "ViewCAMSimulator.h"
 #include "MillSimulation.h"
 #include "Gui/View3DInventorViewer.h"
@@ -42,6 +43,8 @@ using namespace CAMSimulator;
 
 namespace CAMSimulator
 {
+
+QOpenGLExtraFunctions gOpenGLFunctions;
 
 static const float MouseScrollDelta = 120.0F;
 
@@ -352,7 +355,7 @@ void DlgCAMSimulator::updateWindowScale()
 
 void DlgCAMSimulator::initializeGL()
 {
-    initializeOpenGLFunctions();
+    gOpenGLFunctions.initializeOpenGLFunctions();
 }
 
 void DlgCAMSimulator::paintGL()

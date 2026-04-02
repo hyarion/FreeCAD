@@ -31,6 +31,7 @@
 #include <vector>
 #include <random>
 #include <algorithm>
+#include <numbers>
 
 namespace CAMSimulator
 {

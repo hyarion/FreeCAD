@@ -23,6 +23,7 @@
  ***************************************************************************/
 
 #pragma once
+
 #include "SolidObject.h"
 #include "linmath.h"
 
@@ -39,4 +40,5 @@ public:
 private:
     float mProfile[8] = {};
 };
+
 }  // namespace CAMSimulator

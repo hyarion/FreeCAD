@@ -23,6 +23,7 @@
  ***************************************************************************/
 
 #pragma once
+
 #include "OpenGlWrapper.h"
 
 namespace CAMSimulator
@@ -55,6 +56,5 @@ public:
 protected:
     unsigned int mTextureId = 0;
 };
-
 
 }  // namespace CAMSimulator

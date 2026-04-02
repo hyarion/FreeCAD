@@ -23,10 +23,13 @@
  ***************************************************************************/
 
 #include "Texture.h"
+
+#include "OpenGlWrapper.h"
 #include "GlUtils.h"
 
 namespace CAMSimulator
 {
+
 Texture::~Texture()
 {
     DestroyTexture();

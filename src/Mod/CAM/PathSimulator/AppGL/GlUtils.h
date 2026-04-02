@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include "OpenGlWrapper.h"
 #include "linmath.h"
 
 constexpr auto EPSILON = 0.00001f;

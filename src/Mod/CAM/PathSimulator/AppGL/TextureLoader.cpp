@@ -86,19 +86,19 @@ bool TextureLoader::AddImage(TextureItem* texItem, QImage& pixmap, unsigned int*
     return true;
 }
 
-CAMSimulator::TextureLoader::~TextureLoader()
+TextureLoader::~TextureLoader()
 {
     if (mRawData != nullptr) {
         free(mRawData);
     }
 }
 
-unsigned int* CAMSimulator::TextureLoader::GetRawData()
+unsigned int* TextureLoader::GetRawData()
 {
     return mRawData;
 }
 
-TextureItem* CAMSimulator::TextureLoader::GetTextureItem(int i)
+TextureItem* TextureLoader::GetTextureItem(int i)
 {
     return texItems + i;
 }

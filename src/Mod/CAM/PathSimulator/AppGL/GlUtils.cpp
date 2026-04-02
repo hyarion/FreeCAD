@@ -25,6 +25,8 @@
 #include "GlUtils.h"
 #include <iostream>
 
+#include "OpenGlWrapper.h"
+
 namespace CAMSimulator
 {
 

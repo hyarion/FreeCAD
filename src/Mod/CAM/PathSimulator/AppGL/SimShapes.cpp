@@ -23,15 +23,18 @@
  ***************************************************************************/
 
 #include "SimShapes.h"
+
+#include <cmath>
+#include <cstddef>
+#include <vector>
+#include <algorithm>
+#include <numbers>
+
 #include "Shader.h"
 #include "GlUtils.h"
-#include <math.h>
-#include <cstddef>
-#include <numbers>
-#include <vector>
 
 using namespace CAMSimulator;
-using std::numbers::pi;
+constexpr auto pi = std::numbers::pi_v<float>;
 
 int Shape::lastNumSlices = 0;
 std::vector<float> Shape::sinTable;
@@ -43,7 +46,7 @@ void Shape::GenerateSinTable(int nSlices)
         return;
     }
 
-    float slice = (float)(2 * pi / nSlices);
+    float slice = 2 * pi / nSlices;
     int nvals = nSlices + 1;
     sinTable.resize(nvals);
     cosTable.resize(nvals);
@@ -54,9 +57,8 @@ void Shape::GenerateSinTable(int nSlices)
     lastNumSlices = nvals;
 }
 
-
 void Shape::RotateProfile(
-    float* profPoints,
+    const float* profPoints,
     int nPoints,
     float distance,
     float /* deltaHeight */,
@@ -156,7 +158,7 @@ void Shape::CalculateExtrudeBufferSizes(
 }
 
 void Shape::ExtrudeProfileRadial(
-    float* profPoints,
+    const float* profPoints,
     int nPoints,
     float radius,
     float angleRad,
@@ -254,7 +256,7 @@ void Shape::ExtrudeProfileRadial(
 }
 
 void Shape::ExtrudeProfileLinear(
-    float* profPoints,
+    const float* profPoints,
     int nPoints,
     float fromX,
     float toX,
@@ -345,7 +347,7 @@ void Shape::GenerateModel(const float* vbuffer, const GLushort* ibuffer, int num
     numIndices = nIndices;
 }
 
-void Shape::SetupVertexAttribs()
+void Shape::SetupVertexAttribs() const
 {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
@@ -360,14 +362,17 @@ void Shape::SetModelData(const std::vector<Vertex>& vbuffer, const std::vector<G
     GenerateModel((const float*)vbuffer.data(), ibuffer.data(), (int)vbuffer.size(), (int)ibuffer.size());
 }
 
-void Shape::Render()
+void Shape::Render() const
 {
     SetupVertexAttribs();
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, nullptr);
 }
 
-void Shape::Render(const mat4x4& modelMat, const mat4x4& normallMat)  // normals are rotated only
+void Shape::Render(
+    const mat4x4& modelMat,
+    const mat4x4& normallMat
+) const  // normals are rotated only
 {
     CurrentShader->UpdateModelMat(modelMat, normallMat);
     Render();

@@ -25,7 +25,7 @@
 #include "GlUtils.h"
 #include <iostream>
 
-namespace MillSim
+namespace CAMSimulator
 {
 
 const mat4x4 identityMat = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
@@ -46,4 +46,4 @@ bool GLLogError()
     return isError;
 }
 
-}  // namespace MillSim
+}  // namespace CAMSimulator

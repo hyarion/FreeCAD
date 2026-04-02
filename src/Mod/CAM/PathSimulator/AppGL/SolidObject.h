@@ -27,7 +27,7 @@
 #include "linmath.h"
 #include <vector>
 
-namespace MillSim
+namespace CAMSimulator
 {
 
 class SolidObject
@@ -49,4 +49,4 @@ public:
 protected:
     mat4x4 mModelMat;
 };
-}  // namespace MillSim
+}  // namespace CAMSimulator

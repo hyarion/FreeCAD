@@ -30,7 +30,7 @@
 
 #include "GCodeParser.h"
 
-using namespace MillSim;
+using namespace CAMSimulator;
 
 static char TokTypes[] = "GTXYZIJKR";
 

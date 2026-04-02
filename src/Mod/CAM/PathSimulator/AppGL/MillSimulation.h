@@ -42,7 +42,7 @@
 #define VIEWITEM_BASE_SHAPE 2
 #define VIEWITEM_MAX 4
 
-namespace MillSim
+namespace CAMSimulator
 {
 
 struct MillSimulationState
@@ -150,4 +150,4 @@ protected:
     int mLastModifiers = 0;
 };
 
-}  // namespace MillSim
+}  // namespace CAMSimulator

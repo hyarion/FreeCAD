@@ -36,7 +36,7 @@
 #include <regex>
 #include <Base/Console.h>
 
-namespace MillSim
+namespace CAMSimulator
 {
 
 Shader* CurrentShader = nullptr;
@@ -660,4 +660,4 @@ const char* FragShader3DLine = R"(
     }
 )";
 
-}  // namespace MillSim
+}  // namespace CAMSimulator

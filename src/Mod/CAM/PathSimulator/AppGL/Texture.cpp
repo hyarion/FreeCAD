@@ -25,7 +25,7 @@
 #include "Texture.h"
 #include "GlUtils.h"
 
-namespace MillSim
+namespace CAMSimulator
 {
 Texture::~Texture()
 {
@@ -66,4 +66,4 @@ bool Texture::unbind()
     return true;
 }
 
-}  // namespace MillSim
+}  // namespace CAMSimulator

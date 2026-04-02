@@ -30,7 +30,7 @@
 #include "GlUtils.h"
 #include <QString>
 
-namespace MillSim
+namespace CAMSimulator
 {
 class MillSimulation;
 
@@ -152,4 +152,4 @@ private:
     float mThumbMaxMotion = 0;
 };
 
-}  // namespace MillSim
+}  // namespace CAMSimulator

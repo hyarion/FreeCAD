@@ -26,7 +26,7 @@
 #include "OpenGlWrapper.h"
 #include "SimShapes.h"
 
-using namespace MillSim;
+using namespace CAMSimulator;
 
 EndMill::EndMill(int toolid, float diameter)
 {

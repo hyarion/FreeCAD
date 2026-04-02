@@ -29,7 +29,7 @@
 #include <cstddef>
 #include <vector>
 
-using namespace MillSim;
+using namespace CAMSimulator;
 using std::numbers::pi;
 
 int Shape::lastNumSlices = 0;

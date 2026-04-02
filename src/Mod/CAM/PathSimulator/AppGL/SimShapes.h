@@ -45,7 +45,7 @@
         var[idx++] = z + offs; \
     }
 
-namespace MillSim
+namespace CAMSimulator
 {
 typedef unsigned int uint;
 
@@ -133,4 +133,4 @@ protected:
     );
 };
 
-}  // namespace MillSim
+}  // namespace CAMSimulator

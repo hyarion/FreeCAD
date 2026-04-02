@@ -31,7 +31,7 @@
 #define PROFILE_BUFFER_SIZE(npoints) (PROFILE_BUFFER_POINTS(npoints) * 2)
 #define MILL_HEIGHT 10
 
-namespace MillSim
+namespace CAMSimulator
 {
 class EndMill
 {
@@ -55,4 +55,4 @@ public:
 protected:
     void MirrorPointBuffer();
 };
-}  // namespace MillSim
+}  // namespace CAMSimulator

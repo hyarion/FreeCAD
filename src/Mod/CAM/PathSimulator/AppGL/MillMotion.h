@@ -26,7 +26,7 @@
 
 #include "EndMill.h"
 #include "linmath.h"
-namespace MillSim
+namespace CAMSimulator
 {
 
 enum eEndMillType
@@ -64,4 +64,4 @@ static inline void MotionPosToVec(vec3 vec, const MillMotion* motion)
     vec[1] = motion->y;
     vec[2] = motion->z;
 }
-}  // namespace MillSim
+}  // namespace CAMSimulator

@@ -25,7 +25,7 @@
 #pragma once
 #include "OpenGlWrapper.h"
 
-namespace MillSim
+namespace CAMSimulator
 {
 
 class Texture
@@ -57,4 +57,4 @@ protected:
 };
 
 
-}  // namespace MillSim
+}  // namespace CAMSimulator

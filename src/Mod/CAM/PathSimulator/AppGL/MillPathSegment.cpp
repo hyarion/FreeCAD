@@ -40,7 +40,7 @@ constexpr auto pi = std::numbers::pi_v<float>;
 #define PZ 2
 
 
-namespace MillSim
+namespace CAMSimulator
 {
 
 bool IsVerticalMotion(MillMotion* m1, MillMotion* m2)
@@ -259,4 +259,4 @@ float MillPathSegment::SetQuality(float quality, float maxStockDimension)
     }
     return mResolution;
 }
-}  // namespace MillSim
+}  // namespace CAMSimulator

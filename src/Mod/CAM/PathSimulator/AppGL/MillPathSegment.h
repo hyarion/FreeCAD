@@ -30,7 +30,7 @@
 #include "linmath.h"
 #include "MillPathLine.h"
 
-namespace MillSim
+namespace CAMSimulator
 {
 
 enum MotionType
@@ -95,4 +95,4 @@ protected:
     vec3 mHeadPos = {0};
     MotionType mMotionType;
 };
-}  // namespace MillSim
+}  // namespace CAMSimulator

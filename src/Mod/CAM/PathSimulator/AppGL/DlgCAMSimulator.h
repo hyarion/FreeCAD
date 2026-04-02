@@ -41,13 +41,13 @@
 #include <QMouseEvent>
 #include <QOpenGLContext>
 
-namespace MillSim
+namespace CAMSimulator
 {
 // use short declaration as using 'include' causes a header loop
 class MillSimulation;
 class MillSimulationState;
 struct Vertex;
-}  // namespace MillSim
+}  // namespace CAMSimulator
 
 namespace Gui
 {
@@ -62,7 +62,7 @@ class ViewCAMSimulator;
 struct SimShape
 {
 public:
-    std::vector<MillSim::Vertex> verts;
+    std::vector<CAMSimulator::Vertex> verts;
     std::vector<GLushort> indices;
     bool needsUpdate = false;
 };
@@ -122,7 +122,7 @@ private:
     bool mAnimating = false;
     QTimer mAnimatingTimer;
 
-    std::unique_ptr<MillSim::MillSimulation> mMillSimulator;
+    std::unique_ptr<CAMSimulator::MillSimulation> mMillSimulator;
     float mQuality = 10;
 
     std::vector<std::string> mGCode;
@@ -135,7 +135,7 @@ private:
 
     ViewCAMSimulator& mView;
 
-    std::unique_ptr<MillSim::MillSimulationState> mState;
+    std::unique_ptr<CAMSimulator::MillSimulationState> mState;
 };
 
 }  // namespace CAMSimulator

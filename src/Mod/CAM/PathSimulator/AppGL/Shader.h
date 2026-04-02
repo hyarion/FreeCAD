@@ -27,7 +27,7 @@
 #include "OpenGlWrapper.h"
 #include "linmath.h"
 
-namespace MillSim
+namespace CAMSimulator
 {
 class Shader
 {
@@ -111,4 +111,4 @@ extern const char* VertShader3DLine;
 extern const char* FragShader3DLine;
 
 
-}  // namespace MillSim
+}  // namespace CAMSimulator

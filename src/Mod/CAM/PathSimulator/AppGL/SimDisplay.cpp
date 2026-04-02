@@ -35,7 +35,7 @@
 #include "OpenGlWrapper.h"
 #include <cmath>
 
-namespace MillSim
+namespace CAMSimulator
 {
 
 void SimDisplay::InitShaders()
@@ -601,4 +601,4 @@ float SimDisplay::GetEyeFactor()
     return mEyeDistFactor;
 }
 
-}  // namespace MillSim
+}  // namespace CAMSimulator

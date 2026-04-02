@@ -30,7 +30,7 @@
 #include <QPoint>
 #include <QCoreApplication>
 
-using namespace MillSim;
+using namespace CAMSimulator;
 
 // clang-format off
 // NOLINTBEGIN(*-magic-numbers)

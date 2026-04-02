@@ -26,7 +26,7 @@
 #include "MillMotion.h"
 #include <vector>
 
-namespace MillSim
+namespace CAMSimulator
 {
 struct GCToken
 {
@@ -56,4 +56,4 @@ protected:
     bool ParseLine(const char* ptr);
     int lastTool = -1;
 };
-}  // namespace MillSim
+}  // namespace CAMSimulator

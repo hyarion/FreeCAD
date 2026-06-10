@@ -74,6 +74,10 @@ if(BUILD_PLOT)
   add_subdirectory(Plot)
 endif(BUILD_PLOT)
 
+if(BUILD_ICON_STUDIO)
+  add_subdirectory(IconStudio)
+endif(BUILD_ICON_STUDIO)
+
 if(BUILD_POINTS)
   add_subdirectory(Points)
 endif(BUILD_POINTS)

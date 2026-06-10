@@ -184,6 +184,22 @@ TEST_F(CameraPrecalculatedQuaternions, testTrimetric)
     EXPECT_TRUE(actual.isSame(expected, 1e-6));
 }
 
+TEST_F(CameraPrecalculatedQuaternions, testAxonometric23)
+{
+    // Asymmetric trimetric where the projected world X-axis has slope 1:3
+    // and the projected world Y-axis has slope 1:2.
+    // From the projection formulas X.y/X.x = tan(alpha)*sin(beta)
+    // and Y.y/Y.x = -cot(alpha)*sin(beta), setting magnitudes 1/3 and 1/2
+    // yields tan^2(alpha) = 2/3 and sin^2(beta) = 1/6.
+    double alpha = std::atan(std::sqrt(2.0 / 3.0));
+    double beta = -std::asin(1.0 / std::sqrt(6.0));
+
+    const Rotation actual = buildAxonometricRotation(alpha, beta);
+    const Rotation expected = convertTo<Rotation>(Gui::Camera::axonometric23());
+
+    EXPECT_TRUE(actual.isSame(expected, 1e-6));
+}
+
 
 class CameraRotation: public ::testing::Test
 {
@@ -236,4 +252,28 @@ TEST_F(CameraRotation, testTrimetricProjection)
     EXPECT_GT(std::abs(lengths[0] - lengths[1]), 1e-3);
     EXPECT_GT(std::abs(lengths[1] - lengths[2]), 1e-3);
     EXPECT_GT(std::abs(lengths[0] - lengths[2]), 1e-3);
+}
+
+TEST_F(CameraRotation, testAxonometric23Projection)
+{
+    // Project the world unit axes and check slopes 1:2 (X) and 1:3 (Y),
+    // and that the world Z-axis stays vertical on screen.
+    SbViewVolume volume;
+    volume.ortho(-10, 10, -10, 10, -10, 10);
+    volume.rotateCamera(Gui::Camera::axonometric23());
+    const auto matrix = volume.getMatrix();
+
+    SbVec3f vo, vx, vy, vz;
+    matrix.multVecMatrix(SbVec3f(0, 0, 0), vo);
+    matrix.multVecMatrix(SbVec3f(10, 0, 0), vx);
+    matrix.multVecMatrix(SbVec3f(0, 10, 0), vy);
+    matrix.multVecMatrix(SbVec3f(0, 0, 10), vz);
+
+    const SbVec3f dx = vx - vo;
+    const SbVec3f dy = vy - vo;
+    const SbVec3f dz = vz - vo;
+
+    EXPECT_NEAR(std::abs(dx[1] / dx[0]), 1.0 / 3.0, 1e-6);  // X slope = 1:3
+    EXPECT_NEAR(std::abs(dy[1] / dy[0]), 1.0 / 2.0, 1e-6);  // Y slope = 1:2
+    EXPECT_NEAR(dz[0], 0.0, 1e-6);                          // Z is vertical
 }

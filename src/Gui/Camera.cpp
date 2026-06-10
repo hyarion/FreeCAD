@@ -89,6 +89,16 @@ SbRotation Camera::trimetric()
     return {0.446015F, 0.119509F, 0.229575F, 0.856787F};
 }
 
+SbRotation Camera::axonometric23()
+{
+    // Asymmetric trimetric where the projected world X-axis has slope 1:3
+    // and the projected world Y-axis has slope 1:2 (rise:run), giving a
+    // pixel-aligned look. World Z stays vertical on screen.
+    // alpha = atan(sqrt(2/3)), beta = -asin(1/sqrt(6)).
+    // The values are verified with unit tests.
+    return {0.512377F, 0.182608F, 0.281702F, 0.790423F};
+}
+
 SbRotation Camera::rotation(Camera::Orientation view)
 {
     switch (view) {
@@ -110,6 +120,8 @@ SbRotation Camera::rotation(Camera::Orientation view)
             return dimetric();
         case Trimetric:
             return trimetric();
+        case Axonometric23:
+            return axonometric23();
         default:
             return top();
     }

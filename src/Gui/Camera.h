@@ -44,6 +44,7 @@ public:
         Isometric,
         Dimetric,
         Trimetric,
+        Axonometric23,
     };
 
     static SbRotation top();
@@ -55,6 +56,7 @@ public:
     static SbRotation isometric();
     static SbRotation dimetric();
     static SbRotation trimetric();
+    static SbRotation axonometric23();
 
     static SbRotation rotation(Orientation view);
     static Base::Rotation convert(Orientation view);

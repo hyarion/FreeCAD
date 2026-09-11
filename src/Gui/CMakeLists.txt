@@ -117,6 +117,11 @@ else(MSVC)
     )
 endif(MSVC)
 
+if(APPLE)
+    # SplashScreen.cpp reaches AppKit through the Objective-C runtime
+    list(APPEND FreeCADGui_LIBS objc)
+endif(APPLE)
+
 if(BUILD_TRACY_FRAME_PROFILER)
     list(APPEND FreeCADGui_LIBS TracyClient)
 endif()

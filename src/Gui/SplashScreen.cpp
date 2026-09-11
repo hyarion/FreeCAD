@@ -39,6 +39,11 @@
 #include <App/Metadata.h>
 #include <Base/Console.h>
 
+#ifdef Q_OS_MACOS
+# include <objc/message.h>
+# include <objc/runtime.h>
+#endif
+
 #include "BitmapFactory.h"
 #include "SplashScreen.h"
 #include "Tools.h"
@@ -220,6 +225,47 @@ static void renderDevBuildWarning(
     painter.drawText(startPosition.x() + padding, startPosition.y() + 2 * lineHeight, devWarningLine2);
 }
 
+#ifdef Q_OS_MACOS
+/** Turns the native drop shadow of the window \a widget belongs to on or off.
+ *
+ * macOS 26 gives borderless windows a drop shadow that they did not have before, which
+ * draws a box around a frameless window such as the splash screen. Qt has no API for the
+ * underlying NSWindow shadow flag, so it is set through the Objective-C runtime instead.
+ * Going through the runtime keeps this an ordinary C++ translation unit: neither an
+ * Objective-C++ compiler language nor the AppKit framework has to be added to the build.
+ *
+ * objc_msgSend has to be cast to the exact signature of the message being sent before it
+ * is called, otherwise the arguments end up in the wrong place on arm64.
+ */
+static void setNativeWindowShadow(QWidget* widget, bool enabled)
+{
+    QWindow* window = widget->windowHandle();
+    if (!window) {
+        return;
+    }
+
+    // On the Cocoa platform plugin winId() is the NSView backing the QWindow.
+    // NOLINTNEXTLINE(performance-no-int-to-ptr)
+    auto view = reinterpret_cast<id>(window->winId());
+
+    // NSWindow* nsWindow = [view window];
+    auto sendGetWindow = reinterpret_cast<id (*)(id, SEL)>(objc_msgSend);
+    id nsWindow = sendGetWindow(view, sel_registerName("window"));
+    if (!nsWindow) {
+        return;
+    }
+
+    // [nsWindow setHasShadow:enabled];
+    auto sendSetHasShadow = reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend);
+    sendSetHasShadow(nsWindow, sel_registerName("setHasShadow:"), static_cast<BOOL>(enabled));
+
+    // The shadow is cached, so a window that is already on screen keeps drawing the old
+    // one until it is invalidated: [nsWindow invalidateShadow];
+    auto sendInvalidateShadow = reinterpret_cast<void (*)(id, SEL)>(objc_msgSend);
+    sendInvalidateShadow(nsWindow, sel_registerName("invalidateShadow"));
+}
+#endif
+
 }  // namespace Gui
 
 // ------------------------------------------------------------------------------
@@ -258,6 +304,13 @@ bool SplashScreen::event(QEvent* e)
 void SplashScreen::show()
 {
     QSplashScreen::show();
+
+#ifdef Q_OS_MACOS
+    // A splash screen is frameless, but macOS 26 gives borderless windows a drop
+    // shadow anyway, which draws a box around it. The NSWindow only exists once
+    // the widget has been shown, so this cannot be done in the constructor.
+    setNativeWindowShadow(this, false);
+#endif
 
     // Our repaint will call processEvents later on, no need to waste time here
     if (messages->bErr) {
